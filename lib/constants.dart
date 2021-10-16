@@ -2,15 +2,13 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 CupertinoThemeData kThemeData = const CupertinoThemeData(
-  brightness: Brightness.light,
-  barBackgroundColor: Color(0xFFFFFFFF),
-  primaryColor: Color(0xFFFFCC4A),
-  primaryContrastingColor: Color(0xFF0d0d0d),
-  scaffoldBackgroundColor: Color(0xFFFFFFFF),
-  textTheme: CupertinoTextThemeData(
-    primaryColor: Color(0xFF4642B3),
-  ),
+  brightness: Brightness.dark,
+  primaryColor: Color(0xFF4642B3),
+  primaryContrastingColor: Color(0xFFFFCC4A),
+  barBackgroundColor: Color(0xFF000030),
+  scaffoldBackgroundColor: Color(0xFF000030),
 );
+
 
 //colorScheme: ColorScheme(
 //  brightness: Brightness.light,
