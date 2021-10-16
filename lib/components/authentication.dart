@@ -1,7 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:gtk_flutter/components/header.dart';
-import 'package:gtk_flutter/components/styled_button.dart';
 
 enum ApplicationLoginState {
   loggedOut,
@@ -48,16 +47,22 @@ class Authentication extends StatelessWidget {
   Widget build(BuildContext context) {
     switch (loginState) {
       case ApplicationLoginState.loggedOut:
-        return Row(
+        return Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Padding(
-              padding: const EdgeInsets.only(left: 24, bottom: 8),
-              child: CupertinoButton.filled(
-                onPressed: () {
-                  startLoginFlow();
-                },
-                child: const Text('CONTINUE'),
-              ),
+            const SizedBox(height: 72),
+            CupertinoButton.filled(
+              onPressed: () {
+                startLoginFlow();
+              },
+              child: const Text('SIGN UP'),
+            ),
+            const SizedBox(height: 12),
+            CupertinoButton(
+              onPressed: () {
+                startLoginFlow();
+              },
+              child: const Text('SIGN IN'),
             ),
           ],
         );
@@ -120,7 +125,7 @@ class Authentication extends StatelessWidget {
       default:
         return Row(
           children: const [
-            Text("Uncaught error happened. Please contact us."),
+            Text("Uncaught error. Please contact us."),
           ],
         );
     }
@@ -130,23 +135,17 @@ class Authentication extends StatelessWidget {
     showDialog<void>(
       context: context,
       builder: (context) {
-        return AlertDialog(
+        return CupertinoAlertDialog(
           title: Text(
             title,
-            style: const TextStyle(fontSize: 24),
+            //style: const TextStyle(fontSize: 24),
           ),
-          content: SingleChildScrollView(
-            child: ListBody(
-              children: <Widget>[
-                Text(
-                  '${(e as dynamic).message}',
-                  style: const TextStyle(fontSize: 18),
-                ),
-              ],
-            ),
+          content: Text(
+            '${(e as dynamic).message}',
+            //style: const TextStyle(fontSize: 18),
           ),
-          actions: <Widget>[
-            CupertinoButton.filled(
+          actions: [
+            CupertinoDialogAction(
               onPressed: () {
                 Navigator.of(context).pop();
               },
@@ -174,7 +173,6 @@ class _EmailFormState extends State<EmailForm> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        const Header('Sign in with email'),
         Padding(
           padding: const EdgeInsets.all(8.0),
           child: Form(
@@ -184,12 +182,16 @@ class _EmailFormState extends State<EmailForm> {
               children: <Widget>[
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: TextFormField(
+                  child: CupertinoTextFormFieldRow(
                     controller: _controller,
                     keyboardType: TextInputType.emailAddress,
-                    decoration: const InputDecoration(
-                      hintText: 'Enter your email',
-                    ),
+                    autocorrect: false,
+                    cursorColor:
+                        CupertinoTheme.of(context).primaryContrastingColor,
+                    style: const TextStyle(color: Colors.white),
+                    textCapitalization: TextCapitalization.none,
+                    placeholder: 'Email',
+                    prefix: const Icon(CupertinoIcons.mail_solid),
                     validator: (value) {
                       if (value!.isEmpty) {
                         return 'Enter your email address to continue';
@@ -199,11 +201,11 @@ class _EmailFormState extends State<EmailForm> {
                   ),
                 ),
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
+                  mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Padding(
-                      padding: const EdgeInsets.symmetric(
-                          vertical: 16.0, horizontal: 30),
+                      padding:
+                          const EdgeInsets.only(top: 16.0, right: 24, left: 24),
                       child: CupertinoButton.filled(
                         onPressed: () async {
                           if (_formKey.currentState!.validate()) {
@@ -268,6 +270,7 @@ class _RegisterFormState extends State<RegisterForm> {
                     controller: _emailController,
                     decoration: const InputDecoration(
                       hintText: 'Enter your email',
+                      hintStyle: TextStyle(color: Colors.white38),
                     ),
                     validator: (value) {
                       if (value!.isEmpty) {
@@ -283,6 +286,7 @@ class _RegisterFormState extends State<RegisterForm> {
                     controller: _displayNameController,
                     decoration: const InputDecoration(
                       hintText: 'First & last name',
+                      hintStyle: TextStyle(color: Colors.white38),
                     ),
                     validator: (value) {
                       if (value!.isEmpty) {
@@ -298,6 +302,7 @@ class _RegisterFormState extends State<RegisterForm> {
                     controller: _passwordController,
                     decoration: const InputDecoration(
                       hintText: 'Password',
+                      hintStyle: TextStyle(color: Colors.white38),
                     ),
                     obscureText: true,
                     validator: (value) {
@@ -369,22 +374,21 @@ class _PasswordFormState extends State<PasswordForm> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        const Header('Sign in'),
         Padding(
           padding: const EdgeInsets.all(8.0),
           child: Form(
             key: _formKey,
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: <Widget>[
+              children: [
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: TextFormField(
-                    keyboardType: TextInputType.datetime,
+                  child: CupertinoTextFormFieldRow(
                     controller: _emailController,
-                    decoration: const InputDecoration(
-                      hintText: 'Enter your email',
-                    ),
+                    keyboardType: TextInputType.emailAddress,
+                    placeholder: 'Email',
+                    prefix: const Icon(CupertinoIcons.mail_solid),
+                    autocorrect: false,
                     validator: (value) {
                       if (value!.isEmpty) {
                         return 'Enter your email address to continue';
@@ -395,11 +399,13 @@ class _PasswordFormState extends State<PasswordForm> {
                 ),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: TextFormField(
+                  child: CupertinoTextFormFieldRow(
                     controller: _passwordController,
-                    decoration: const InputDecoration(
-                      hintText: 'Password',
-                    ),
+                    keyboardType: TextInputType.text,
+                    prefix: const Icon(CupertinoIcons.lock_fill),
+                    placeholder: 'Password',
+                    style: const TextStyle(color: Colors.white),
+                    autocorrect: false,
                     obscureText: true,
                     validator: (value) {
                       if (value!.isEmpty) {
@@ -412,7 +418,7 @@ class _PasswordFormState extends State<PasswordForm> {
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   child: Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       const SizedBox(width: 16),
                       CupertinoButton.filled(

@@ -2,7 +2,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:gtk_flutter/components/application_state.dart';
 import 'package:gtk_flutter/constants.dart';
-import 'package:gtk_flutter/pages/home_page.dart';
+import 'package:gtk_flutter/pages/login_page.dart';
+import 'package:gtk_flutter/pages/meeting_page.dart';
 import 'package:provider/provider.dart';
 
 void main() {
@@ -20,7 +21,7 @@ class App extends StatelessWidget {
     return CupertinoApp(
       title: 'Project X',
       theme: kThemeData,
-      home: const HomePage(),
+      home: const LoginPage(),
       localizationsDelegates: const [
         DefaultMaterialLocalizations.delegate,
         DefaultCupertinoLocalizations.delegate,
