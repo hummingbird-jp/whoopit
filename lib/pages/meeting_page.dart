@@ -24,6 +24,7 @@ class MeetingPage extends StatefulWidget {
 
 class _MeetingPageState extends State<MeetingPage> {
   bool _joined = false;
+  bool get joined => _joined;
   int _remoteUid = 0;
   bool _muted = false;
 
@@ -36,18 +37,20 @@ class _MeetingPageState extends State<MeetingPage> {
   Future<void> initPlatformState() async {
     await [Permission.camera, Permission.microphone].request();
 
+    print('initPlatformState called.');
     RtcEngineContext _rtcEngineContext = RtcEngineContext(appId);
 
     agoraEngine = await RtcEngine.createWithContext(_rtcEngineContext);
     // TODO: Just for hot-restart. Remove when publish.
     agoraEngine.destroy();
+    print('agoraEngine destroyed.');
     agoraEngine = await RtcEngine.createWithContext(_rtcEngineContext);
+    print('agoraEngine re-initialized.');
 
     agoraEngine.setEventHandler(
       RtcEngineEventHandler(
         joinChannelSuccess: (channel, uid, elapsed) {
           print('joinChannelSuccess: $channel $uid');
-
           setState(() {
             _joined = true;
           });
@@ -69,8 +72,14 @@ class _MeetingPageState extends State<MeetingPage> {
       ),
     );
 
-    await agoraEngine.enableVideo();
-    await agoraEngine.joinChannel(token, 'test', null, 0);
+    try {
+      await agoraEngine.enableVideo();
+      await agoraEngine.joinChannel(token, channelName, null, 0);
+
+      print('Succeeded to join a channel: $channelName');
+    } catch (e) {
+      print('Failed to join a channel: $e');
+    }
   }
 
   @override
@@ -78,11 +87,13 @@ class _MeetingPageState extends State<MeetingPage> {
     return CupertinoPageScaffold(
       navigationBar: CupertinoNavigationBar(
         middle: Text(
-          'Project X',
+          'Whoopit',
           style: TextStyle(
             color: CupertinoTheme.of(context).primaryContrastingColor,
           ),
         ),
+        previousPageTitle: 'Home',
+        //leading: const HomePage(),
       ),
       child: Material(
         color: CupertinoTheme.of(context).scaffoldBackgroundColor,
@@ -143,7 +154,7 @@ class _MeetingPageState extends State<MeetingPage> {
                       ),
                     ],
                   ),
-                  //Consumer<ApplicationState>(
+                  // <ApplicationState>(
                   //  builder: (context, appState, _) => Column(
                   //    crossAxisAlignment: CrossAxisAlignment.start,
                   //    children: [
@@ -182,14 +193,16 @@ class _MeetingPageState extends State<MeetingPage> {
                           ),
                         ),
                         child: Text(
-                          '👋 Leave quietly',
+                          '👋 Leave',
                           style: TextStyle(
                             color: CupertinoTheme.of(context)
                                 .primaryContrastingColor,
                           ),
                         ),
-                        onPressed: () {
-                          agoraEngine.leaveChannel();
+                        onPressed: () async {
+                          await agoraEngine.leaveChannel();
+                          print('Left the channel.');
+                          Navigator.pop(context);
                         },
                       ),
                       ElevatedButton(
@@ -268,10 +281,9 @@ class _MeetingPageState extends State<MeetingPage> {
     if (_joined) {
       return rtc_local_view.SurfaceView();
     } else {
-      return const Text(
-        'Please join a channel first.',
-        textAlign: TextAlign.center,
-        style: TextStyle(color: Colors.white),
+      return ElevatedButton(
+        onPressed: initPlatformState,
+        child: const Icon(CupertinoIcons.refresh_bold),
       );
     }
   }

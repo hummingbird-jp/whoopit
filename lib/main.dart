@@ -19,7 +19,7 @@ class App extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return CupertinoApp(
-      title: 'Project X',
+      title: 'Whoopit',
       theme: kThemeData,
       home: const LoginPage(),
       localizationsDelegates: const [
