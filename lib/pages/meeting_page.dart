@@ -27,6 +27,8 @@ class _MeetingPageState extends State<MeetingPage> {
   bool get joined => _joined;
   int _remoteUid = 0;
   bool _muted = false;
+  final RoundedLoadingButtonController _buttonController =
+      RoundedLoadingButtonController();
 
   @override
   void initState() {
@@ -230,39 +232,54 @@ class _MeetingPageState extends State<MeetingPage> {
                           // TODO: Implement functionallity
                         },
                       ),
-                      ElevatedButton(
-                        style: ButtonStyle(
-                          backgroundColor: MaterialStateProperty.all<Color>(
-                            CupertinoTheme.of(context).primaryContrastingColor,
-                          ),
-                          shape: MaterialStateProperty.all(
-                            RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(30),
-                              side: BorderSide(
-                                color: CupertinoTheme.of(context).primaryColor,
-                              ),
-                            ),
-                          ),
-                        ),
+                      RoundedLoadingButton(
+                        controller: _buttonController,
+                        height: 36,
+                        width: 72,
+                        loaderStrokeWidth: 1.0,
+                        animateOnTap: true,
+                        resetDuration: const Duration(milliseconds: 1500),
+                        resetAfterDuration: true,
+                        successIcon: CupertinoIcons.mic_fill,
+                        failedIcon: CupertinoIcons.mic_off,
+                        successColor: CupertinoTheme.of(context).primaryColor,
+                        errorColor: const Color(0xFFFF2D34),
+                        color: _muted
+                            ? const Color(0xFFFF2D34)
+                            : CupertinoTheme.of(context)
+                                .primaryContrastingColor,
                         child: Row(
                           children: [
                             Icon(
-                              CupertinoIcons.mic_fill,
+                              _muted
+                                  ? CupertinoIcons.mic_off
+                                  : CupertinoIcons.mic_fill,
                               size: 12,
-                              color: CupertinoTheme.of(context).primaryColor,
+                              color: _muted
+                                  ? CupertinoTheme.of(context)
+                                      .primaryContrastingColor
+                                  : CupertinoTheme.of(context).primaryColor,
                             ),
                             Text(
-                              'Mute',
+                              _muted ? 'Muted' : 'Unmuted',
                               style: TextStyle(
-                                color: CupertinoTheme.of(context).primaryColor,
+                                color: _muted
+                                    ? CupertinoTheme.of(context)
+                                        .primaryContrastingColor
+                                    : CupertinoTheme.of(context).primaryColor,
                               ),
                             ),
                           ],
                         ),
-                        onPressed: () {
-                          agoraEngine.muteLocalAudioStream(!_muted);
+                        onPressed: () async {
+                          await agoraEngine.muteLocalAudioStream(!_muted);
                           setState(() {
                             _muted = !_muted;
+                          });
+                          Timer(const Duration(milliseconds: 200), () {
+                            _muted
+                                ? _buttonController.error()
+                                : _buttonController.success();
                           });
                         },
                       ),
