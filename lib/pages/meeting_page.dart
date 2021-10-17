@@ -1,16 +1,17 @@
+import 'dart:async';
+
 import 'package:agora_rtc_engine/rtc_engine.dart';
 import 'package:agora_rtc_engine/rtc_local_view.dart' as rtc_local_view;
 import 'package:agora_rtc_engine/rtc_remote_view.dart' as rtc_remote_view;
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:gtk_flutter/components/application_state.dart';
-import 'package:gtk_flutter/components/authentication.dart';
+import 'package:gtk_flutter/pages/home_page.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:provider/provider.dart';
+import 'package:rounded_loading_button/rounded_loading_button.dart';
 
 const String appId = '8d98fb1cbd094508bff710b6a2d199ef';
 const String token =
-    '0068d98fb1cbd094508bff710b6a2d199efIACNJHp0rlLBbbyHw171jtmb/3CxViZKRpLVLvwLKK5Inwx+f9gAAAAAEACLBKCgHG1pYQEAAQAbbWlh';
+    '0068d98fb1cbd094508bff710b6a2d199efIAARboItECdGrAG6C4wo/BAUIh/O1Qo8LpJVFbSzTRkvpAx+f9gAAAAAEACOYDhkhDttYQEAAQCEO21h';
 const String channelName = 'test';
 late RtcEngine agoraEngine;
 

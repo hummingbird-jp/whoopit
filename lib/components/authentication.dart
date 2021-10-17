@@ -1,6 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:gtk_flutter/components/header.dart';
+import 'package:gtk_flutter/pages/home_page.dart';
+import 'package:gtk_flutter/pages/meeting_page.dart';
 
 enum ApplicationLoginState {
   loggedOut,
@@ -104,19 +106,27 @@ class Authentication extends StatelessWidget {
           },
         );
       case ApplicationLoginState.loggedIn:
-        return Row(
+        return Column(
           children: [
-            Padding(
-              padding: const EdgeInsets.only(left: 24, bottom: 8),
-              child: CupertinoButton(
-                onPressed: () {
-                  signOut();
-                },
-                child: const Text(
-                  'Log out',
-                  style: TextStyle(
-                    color: CupertinoColors.destructiveRed,
+            CupertinoButton.filled(
+              child: const Text('JOIN'),
+              onPressed: () {
+                Navigator.push<Widget>(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => HomePage(),
                   ),
+                );
+              },
+            ),
+            CupertinoButton(
+              onPressed: () {
+                signOut();
+              },
+              child: const Text(
+                'Log out',
+                style: TextStyle(
+                  color: CupertinoColors.destructiveRed,
                 ),
               ),
             ),
@@ -256,7 +266,6 @@ class _RegisterFormState extends State<RegisterForm> {
   Widget build(BuildContext context) {
     return Column(
       children: [
-        const Header('Create account'),
         Padding(
           padding: const EdgeInsets.all(8.0),
           child: Form(
@@ -266,12 +275,13 @@ class _RegisterFormState extends State<RegisterForm> {
               children: <Widget>[
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: TextFormField(
+                  child: CupertinoTextFormFieldRow(
                     controller: _emailController,
-                    decoration: const InputDecoration(
-                      hintText: 'Enter your email',
-                      hintStyle: TextStyle(color: Colors.white38),
-                    ),
+                    autocorrect: false,
+                    keyboardType: TextInputType.emailAddress,
+                    prefix: const Icon(CupertinoIcons.mail_solid),
+                    placeholder: 'Email',
+                    style: const TextStyle(color: Colors.white),
                     validator: (value) {
                       if (value!.isEmpty) {
                         return 'Enter your email address to continue';
@@ -282,12 +292,14 @@ class _RegisterFormState extends State<RegisterForm> {
                 ),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: TextFormField(
+                  child: CupertinoTextFormFieldRow(
                     controller: _displayNameController,
-                    decoration: const InputDecoration(
-                      hintText: 'First & last name',
-                      hintStyle: TextStyle(color: Colors.white38),
-                    ),
+                    autocorrect: false,
+                    keyboardType: TextInputType.text,
+                    textCapitalization: TextCapitalization.words,
+                    prefix: const Icon(CupertinoIcons.profile_circled),
+                    style: const TextStyle(color: Colors.white),
+                    placeholder: 'First & Last Name',
                     validator: (value) {
                       if (value!.isEmpty) {
                         return 'Enter your account name';
@@ -298,12 +310,11 @@ class _RegisterFormState extends State<RegisterForm> {
                 ),
                 Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 24),
-                  child: TextFormField(
+                  child: CupertinoTextFormFieldRow(
                     controller: _passwordController,
-                    decoration: const InputDecoration(
-                      hintText: 'Password',
-                      hintStyle: TextStyle(color: Colors.white38),
-                    ),
+                    autocorrect: false,
+                    prefix: const Icon(CupertinoIcons.lock_fill),
+                    placeholder: 'New Password',
                     obscureText: true,
                     validator: (value) {
                       if (value!.isEmpty) {
@@ -427,6 +438,12 @@ class _PasswordFormState extends State<PasswordForm> {
                             widget.login(
                               _emailController.text,
                               _passwordController.text,
+                            );
+                            Navigator.push<Widget>(
+                              context,
+                              MaterialPageRoute<Widget>(
+                                builder: (context) => const MeetingPage(),
+                              ),
                             );
                           }
                         },
