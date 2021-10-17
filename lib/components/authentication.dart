@@ -1,6 +1,5 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:gtk_flutter/components/header.dart';
 import 'package:gtk_flutter/pages/home_page.dart';
 import 'package:gtk_flutter/pages/meeting_page.dart';
 

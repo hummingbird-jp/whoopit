@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:gtk_flutter/components/application_state.dart';
 import 'package:gtk_flutter/constants.dart';
 import 'package:gtk_flutter/pages/login_page.dart';
-import 'package:gtk_flutter/pages/meeting_page.dart';
 import 'package:provider/provider.dart';
 
 void main() {
