@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:gtk_flutter/pages/home_page.dart';
-import 'package:gtk_flutter/pages/meeting_page.dart';
+import 'package:gtk_flutter/pages/meeting_tab.dart';
 
 enum ApplicationLoginState {
   loggedOut,
@@ -441,7 +441,7 @@ class _PasswordFormState extends State<PasswordForm> {
                             Navigator.push<Widget>(
                               context,
                               MaterialPageRoute<Widget>(
-                                builder: (context) => const MeetingPage(),
+                                builder: (context) => const MeetingTab(),
                               ),
                             );
                           }
