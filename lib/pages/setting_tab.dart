@@ -1,10 +1,28 @@
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class SettingTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return const Center(
-      child: Text('Settings Tab'),
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        GestureDetector(
+          onTap: () {
+            showAboutDialog(
+              context: context,
+              applicationVersion: '1.0.1',
+              applicationIcon: const Icon(CupertinoIcons.airplane),
+              applicationName: 'Whoopit',
+              applicationLegalese: 'Yeah yeah yeah.',
+            );
+          },
+          child: const Text(
+            'About Whoopit',
+          ),
+        ),
+        const Text('XXX'),
+      ],
     );
   }
 }
