@@ -10,7 +10,7 @@ import 'package:rounded_loading_button/rounded_loading_button.dart';
 
 const String appId = '8d98fb1cbd094508bff710b6a2d199ef';
 const String token =
-    '0068d98fb1cbd094508bff710b6a2d199efIAARboItECdGrAG6C4wo/BAUIh/O1Qo8LpJVFbSzTRkvpAx+f9gAAAAAEACOYDhkhDttYQEAAQCEO21h';
+    '0068d98fb1cbd094508bff710b6a2d199efIAA+d176P0W9Gf0OyHnuzZuihG/DjfemYvHbGSRy9EzeGQx+f9gAAAAAEACr2OyTBIFxYQEAAQAEgXFh';
 const String channelName = 'test';
 late RtcEngine agoraEngine;
 
