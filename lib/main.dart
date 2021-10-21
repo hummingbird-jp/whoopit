@@ -2,7 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:gtk_flutter/components/application_state.dart';
 import 'package:gtk_flutter/constants.dart';
-import 'package:gtk_flutter/pages/login_page.dart';
+import 'package:gtk_flutter/pages/splash_page.dart';
 import 'package:provider/provider.dart';
 
 void main() {
@@ -20,7 +20,10 @@ class App extends StatelessWidget {
     return CupertinoApp(
       title: 'Whoopit',
       theme: kThemeData,
-      home: const LoginPage(),
+      home: Consumer<ApplicationState>(
+        builder: (context, appState, _) =>
+            SplashPage(loginState: appState.loginState),
+      ),
       localizationsDelegates: const [
         DefaultMaterialLocalizations.delegate,
         DefaultCupertinoLocalizations.delegate,
