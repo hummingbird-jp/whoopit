@@ -3,15 +3,15 @@ import 'dart:async';
 import 'package:agora_rtc_engine/rtc_engine.dart';
 import 'package:agora_rtc_engine/rtc_local_view.dart' as rtc_local_view;
 import 'package:agora_rtc_engine/rtc_remote_view.dart' as rtc_remote_view;
+import 'package:cloud_functions/cloud_functions.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:rounded_loading_button/rounded_loading_button.dart';
 
 const String appId = '8d98fb1cbd094508bff710b6a2d199ef';
-const String token =
-    '0068d98fb1cbd094508bff710b6a2d199efIAA+d176P0W9Gf0OyHnuzZuihG/DjfemYvHbGSRy9EzeGQx+f9gAAAAAEACr2OyTBIFxYQEAAQAEgXFh';
 const String channelName = 'test';
+String token = '';
 late RtcEngine agoraEngine;
 
 class MeetingTab extends StatefulWidget {
@@ -38,10 +38,9 @@ class _MeetingTabState extends State<MeetingTab> {
   Future<void> initPlatformState() async {
     await [Permission.camera, Permission.microphone].request();
 
-    print('initPlatformState called.');
     RtcEngineContext _rtcEngineContext = RtcEngineContext(appId);
-
     agoraEngine = await RtcEngine.createWithContext(_rtcEngineContext);
+
     // TODO: Just for hot-restart. Remove when publish.
     agoraEngine.destroy();
     print('agoraEngine destroyed.');
@@ -58,14 +57,12 @@ class _MeetingTabState extends State<MeetingTab> {
         },
         userJoined: (uid, elapsed) {
           print('userJoined: $uid');
-
           setState(() {
             _remoteUid = uid;
           });
         },
         userOffline: (uid, reason) {
           print('userOffline: $uid, reason: $reason');
-
           setState(() {
             _remoteUid = 0;
           });
@@ -73,14 +70,33 @@ class _MeetingTabState extends State<MeetingTab> {
       ),
     );
 
-    try {
-      await agoraEngine.enableVideo();
-      await agoraEngine.joinChannel(token, channelName, null, 0);
+    await join();
+  }
 
-      print('Succeeded to join a channel: $channelName');
-    } catch (e) {
-      print('Failed to join a channel: $e');
+  Future<void> join() async {
+    final String newToken = await fetchTokenWithAccount();
+
+    if (token == '') {
+      setState(() {
+        token = newToken;
+      });
     }
+
+    await agoraEngine.enableVideo();
+    // TODO: reflect REAL uid
+    await agoraEngine.joinChannelWithUserAccount(
+        token, channelName, 'eU7mqEbiITgTFMZgp4ulydHMM4R2');
+  }
+
+  Future<String> fetchTokenWithAccount() async {
+    HttpsCallable callable =
+        FirebaseFunctions.instance.httpsCallable('fetchTokenWithAccount');
+
+    final result = await callable({'channelName': channelName});
+    final String token = result.data as String;
+    print('Got token via Cloud Functions: $token');
+
+    return token;
   }
 
   @override
@@ -286,7 +302,7 @@ class _MeetingTabState extends State<MeetingTab> {
       return rtc_local_view.SurfaceView();
     } else {
       return ElevatedButton(
-        onPressed: initPlatformState,
+        onPressed: join,
         child: const Icon(CupertinoIcons.refresh_bold),
       );
     }
