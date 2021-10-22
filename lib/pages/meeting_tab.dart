@@ -42,12 +42,6 @@ class _MeetingTabState extends State<MeetingTab> {
     RtcEngineContext _rtcEngineContext = RtcEngineContext(appId);
     agoraEngine = await RtcEngine.createWithContext(_rtcEngineContext);
 
-    // TODO: Just for hot-restart. Remove when publish.
-    agoraEngine.destroy();
-    print('agoraEngine destroyed.');
-    agoraEngine = await RtcEngine.createWithContext(_rtcEngineContext);
-    print('agoraEngine re-initialized.');
-
     agoraEngine.setEventHandler(
       RtcEngineEventHandler(
         joinChannelSuccess: (channel, uid, elapsed) {
@@ -70,34 +64,6 @@ class _MeetingTabState extends State<MeetingTab> {
         },
       ),
     );
-
-    await join();
-  }
-
-  Future<void> join() async {
-    final String newToken = await fetchTokenWithAccount();
-
-    if (token == '') {
-      setState(() {
-        token = newToken;
-      });
-    }
-
-    await agoraEngine.enableVideo();
-
-    final String account = FirebaseAuth.instance.currentUser!.uid;
-    await agoraEngine.joinChannelWithUserAccount(token, channelName, account);
-  }
-
-  Future<String> fetchTokenWithAccount() async {
-    HttpsCallable callable =
-        FirebaseFunctions.instance.httpsCallable('fetchTokenWithAccount');
-
-    final result = await callable({'channelName': channelName});
-    final String token = result.data as String;
-    print('Got token via Cloud Functions: $token');
-
-    return token;
   }
 
   @override
@@ -119,7 +85,8 @@ class _MeetingTabState extends State<MeetingTab> {
                         children: [
                           ClipRRect(
                             borderRadius: BorderRadius.circular(50),
-                            child: SizedBox(
+                            child: Container(
+                              color: CupertinoTheme.of(context).primaryColor,
                               width: 100.0,
                               height: 100.0,
                               child: _renderLocalPreview(),
@@ -161,21 +128,6 @@ class _MeetingTabState extends State<MeetingTab> {
                     ),
                   ],
                 ),
-                // <ApplicationState>(
-                //  builder: (context, appState, _) => Column(
-                //    crossAxisAlignment: CrossAxisAlignment.start,
-                //    children: [
-                //      if (appState.loginState ==
-                //          ApplicationLoginState.loggedIn) ...[
-                //        Chat(
-                //          addMessage: (message) =>
-                //              appState.addMessageToGuestBook(message),
-                //          messages: appState.guestBookMessages,
-                //        )
-                //      ]
-                //    ],
-                //  ),
-                //),
               ],
             ),
             Positioned(
@@ -298,13 +250,44 @@ class _MeetingTabState extends State<MeetingTab> {
     );
   }
 
+  Future<void> _join() async {
+    initPlatformState();
+
+    final String newToken = await _fetchTokenWithAccount();
+
+    if (token == '') {
+      setState(() {
+        token = newToken;
+      });
+    }
+
+    await agoraEngine.enableVideo();
+
+    final String account = FirebaseAuth.instance.currentUser!.uid;
+    await agoraEngine.joinChannelWithUserAccount(token, channelName, account);
+  }
+
+  Future<String> _fetchTokenWithAccount() async {
+    HttpsCallable callable =
+        FirebaseFunctions.instance.httpsCallable('fetchTokenWithAccount');
+
+    final result = await callable({'channelName': channelName});
+    final String token = result.data as String;
+    print('Got token via Cloud Functions: $token');
+
+    return token;
+  }
+
   Widget _renderLocalPreview() {
     if (_joined) {
       return rtc_local_view.SurfaceView();
     } else {
       return ElevatedButton(
-        onPressed: join,
-        child: const Icon(CupertinoIcons.refresh_bold),
+        onPressed: _join,
+        child: Icon(
+          CupertinoIcons.hand_point_right_fill,
+          color: CupertinoTheme.of(context).primaryContrastingColor,
+        ),
       );
     }
   }
@@ -317,11 +300,7 @@ class _MeetingTabState extends State<MeetingTab> {
       );
     } else {
       return const Center(
-        child: Text(
-          'Waiting for a user...',
-          textAlign: TextAlign.center,
-          style: TextStyle(color: Colors.white),
-        ),
+        child: Icon(CupertinoIcons.hourglass_tophalf_fill),
       );
     }
   }
