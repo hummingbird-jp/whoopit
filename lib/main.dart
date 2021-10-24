@@ -12,12 +12,12 @@ Future<void> main() async {
   runApp(
     ChangeNotifierProvider(
       create: (context) => ApplicationState(),
-      builder: (context, _) => App(),
+      builder: (context, _) => Whoopit(),
     ),
   );
 }
 
-class App extends StatelessWidget {
+class Whoopit extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return CupertinoApp(
