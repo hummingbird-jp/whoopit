@@ -5,6 +5,6 @@ class ProfileTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Center(child: Text('Search Tab'));
+    return const Center(child: Text('Profile Tab'));
   }
 }
