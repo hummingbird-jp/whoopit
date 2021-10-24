@@ -1,8 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:gtk_flutter/components/authentication.dart';
-import 'package:gtk_flutter/pages/home_page.dart';
 import 'package:gtk_flutter/pages/login_page.dart';
+import 'package:gtk_flutter/pages/tabs_page.dart';
 
 class SplashPage extends StatelessWidget {
   const SplashPage({Key? key, required this.loginState}) : super(key: key);
@@ -17,7 +17,7 @@ class SplashPage extends StatelessWidget {
           context,
           MaterialPageRoute(
             builder: (context) => loginState == ApplicationLoginState.loggedIn
-                ? const HomePage()
+                ? const TabsPage()
                 : const LoginPage(),
           ),
         );

@@ -1,20 +1,20 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:gtk_flutter/pages/browse_tab.dart';
-import 'package:gtk_flutter/pages/meeting_tab.dart';
-import 'package:gtk_flutter/pages/profile_tab.dart';
-import 'package:gtk_flutter/pages/search_tab.dart';
+import 'package:gtk_flutter/pages/tabs/browse_tab.dart';
+import 'package:gtk_flutter/pages/tabs/home_tab.dart';
+import 'package:gtk_flutter/pages/tabs/profile_tab.dart';
+import 'package:gtk_flutter/pages/tabs/search_tab.dart';
 
-class HomePage extends StatefulWidget {
-  const HomePage({Key? key}) : super(key: key);
+class TabsPage extends StatefulWidget {
+  const TabsPage({Key? key}) : super(key: key);
 
   @override
-  State<HomePage> createState() => _HomePageState();
+  State<TabsPage> createState() => _TabsPageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _TabsPageState extends State<TabsPage> {
   final List<Widget> _tabs = [
-    const MeetingTab(),
+    const HomeTab(),
     const BrowseTab(),
     const ProfileTab(),
     const SearchTab(),

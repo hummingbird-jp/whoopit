@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:gtk_flutter/pages/home_page.dart';
-import 'package:gtk_flutter/pages/meeting_tab.dart';
+import 'package:gtk_flutter/pages/tabs/home_tab.dart';
+import 'package:gtk_flutter/pages/tabs_page.dart';
 
 enum ApplicationLoginState {
   loggedOut,
@@ -113,7 +113,7 @@ class Authentication extends StatelessWidget {
                 Navigator.push<Widget>(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => const HomePage(),
+                    builder: (context) => const TabsPage(),
                   ),
                 );
               },
@@ -441,7 +441,7 @@ class _PasswordFormState extends State<PasswordForm> {
                             Navigator.push<Widget>(
                               context,
                               MaterialPageRoute<Widget>(
-                                builder: (context) => const MeetingTab(),
+                                builder: (context) => const HomeTab(),
                               ),
                             );
                           }
