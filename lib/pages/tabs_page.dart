@@ -1,9 +1,9 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:gtk_flutter/pages/tabs/browse_tab.dart';
-import 'package:gtk_flutter/pages/tabs/home_tab.dart';
-import 'package:gtk_flutter/pages/tabs/profile_tab.dart';
-import 'package:gtk_flutter/pages/tabs/search_tab.dart';
+import 'package:whoopit/pages/tabs/browse_tab.dart';
+import 'package:whoopit/pages/tabs/home_tab.dart';
+import 'package:whoopit/pages/tabs/profile_tab.dart';
+import 'package:whoopit/pages/tabs/search_tab.dart';
 
 class TabsPage extends StatefulWidget {
   const TabsPage({Key? key}) : super(key: key);

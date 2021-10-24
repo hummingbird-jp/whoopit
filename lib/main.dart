@@ -1,10 +1,10 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:gtk_flutter/components/application_state.dart';
-import 'package:gtk_flutter/constants.dart';
-import 'package:gtk_flutter/pages/splash_page.dart';
 import 'package:provider/provider.dart';
+import 'package:whoopit/components/application_state.dart';
+import 'package:whoopit/constants.dart';
+import 'package:whoopit/pages/splash_page.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();

@@ -1,6 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:gtk_flutter/components/paragraph.dart';
+import 'package:whoopit/components/paragraph.dart';
 
 class GuestBookMessage {
   const GuestBookMessage({required this.name, required this.message});

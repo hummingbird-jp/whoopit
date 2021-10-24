@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:gtk_flutter/pages/tabs/home_tab.dart';
-import 'package:gtk_flutter/pages/tabs_page.dart';
+import 'package:whoopit/pages/tabs/home_tab.dart';
+import 'package:whoopit/pages/tabs_page.dart';
 
 enum ApplicationLoginState {
   loggedOut,

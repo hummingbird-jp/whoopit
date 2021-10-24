@@ -4,8 +4,8 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:gtk_flutter/components/authentication.dart';
-import 'package:gtk_flutter/components/guest_book.dart';
+import 'package:whoopit/components/authentication.dart';
+import 'package:whoopit/components/guest_book.dart';
 
 class ApplicationState extends ChangeNotifier {
   ApplicationState() {

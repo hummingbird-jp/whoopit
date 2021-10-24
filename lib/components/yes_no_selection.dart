@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:gtk_flutter/components/guest_book.dart';
-import 'package:gtk_flutter/components/styled_button.dart';
+import 'package:whoopit/components/guest_book.dart';
+import 'package:whoopit/components/styled_button.dart';
 
 class YesNoSelection extends StatelessWidget {
   const YesNoSelection({required this.state, required this.onSelection});

@@ -1,8 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:gtk_flutter/components/application_state.dart';
-import 'package:gtk_flutter/components/authentication.dart';
 import 'package:provider/provider.dart';
+import 'package:whoopit/components/application_state.dart';
+import 'package:whoopit/components/authentication.dart';
 
 class LoginPage extends StatelessWidget {
   const LoginPage({Key? key}) : super(key: key);

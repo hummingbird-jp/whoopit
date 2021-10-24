@@ -1,8 +1,8 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:gtk_flutter/components/authentication.dart';
-import 'package:gtk_flutter/pages/login_page.dart';
-import 'package:gtk_flutter/pages/tabs_page.dart';
+import 'package:whoopit/components/authentication.dart';
+import 'package:whoopit/pages/login_page.dart';
+import 'package:whoopit/pages/tabs_page.dart';
 
 class SplashPage extends StatelessWidget {
   const SplashPage({Key? key, required this.loginState}) : super(key: key);

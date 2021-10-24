@@ -7,10 +7,10 @@ import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:gtk_flutter/models/meeting_model.dart';
-import 'package:gtk_flutter/pages/tabs/browse_tab.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:rounded_loading_button/rounded_loading_button.dart';
+import 'package:whoopit/models/meeting_model.dart';
+import 'package:whoopit/pages/tabs/browse_tab.dart';
 
 const String appId = '8d98fb1cbd094508bff710b6a2d199ef';
 const String channelName = 'test';

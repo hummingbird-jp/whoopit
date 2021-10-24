@@ -1,6 +1,6 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:gtk_flutter/models/meeting_model.dart';
+import 'package:whoopit/models/meeting_model.dart';
 
 List<Meeting> recentMeetings = [];
 
