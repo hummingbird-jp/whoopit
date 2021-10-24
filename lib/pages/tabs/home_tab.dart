@@ -1,3 +1,5 @@
+import 'dart:developer';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:whoopit/pages/meeting_page.dart';
@@ -51,7 +53,7 @@ class _HomeTabState extends State<HomeTab> {
                     ),
                   );
                 } else {
-                  print('Channel is empty.');
+                  log('Channel is empty.');
                 }
               },
             ),

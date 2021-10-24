@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer';
 
 import 'package:agora_rtc_engine/rtc_engine.dart';
 import 'package:agora_rtc_engine/rtc_local_view.dart' as rtc_local_view;
@@ -36,7 +37,6 @@ class _MeetingPageState extends State<MeetingPage> {
   void initState() {
     super.initState();
     initPlatformState();
-    _join();
   }
 
   Future<void> initPlatformState() async {
@@ -48,25 +48,29 @@ class _MeetingPageState extends State<MeetingPage> {
     agoraEngine.setEventHandler(
       RtcEngineEventHandler(
         joinChannelSuccess: (channel, uid, elapsed) {
-          print('joinChannelSuccess: $channel $uid');
+          log('joinChannelSuccess: $channel $uid');
           setState(() {
             _joined = true;
           });
         },
         userJoined: (uid, elapsed) {
-          print('userJoined: $uid');
+          log('userJoined: $uid');
           setState(() {
             _remoteUid = uid;
           });
         },
         userOffline: (uid, reason) {
-          print('userOffline: $uid, reason: $reason');
+          log('userOffline: $uid, reason: $reason');
           setState(() {
             _remoteUid = 0;
           });
         },
       ),
     );
+
+    log('Agora Platform State initialized.');
+
+    _join();
   }
 
   @override
@@ -164,7 +168,7 @@ class _MeetingPageState extends State<MeetingPage> {
                       ),
                       onPressed: () async {
                         await agoraEngine.leaveChannel();
-                        print('Left the channel.');
+                        log('Left the channel.');
                         Navigator.pop(context);
                       },
                     ),
@@ -270,7 +274,7 @@ class _MeetingPageState extends State<MeetingPage> {
     recentMeetings.add(Meeting(channel: channelName, organizerUid: account));
 
     // TODO: remove
-    print('recentMeetings added: ${recentMeetings.last.channel}');
+    log('recentMeetings added: ${recentMeetingsList.last.channel}');
   }
 
   Future<String> _fetchTokenWithAccount() async {
@@ -279,7 +283,7 @@ class _MeetingPageState extends State<MeetingPage> {
 
     final result = await callable({'channelName': channelName});
     final String token = result.data as String;
-    print('Got token via Cloud Functions: $token');
+    log('Got token via Cloud Functions: $token');
 
     return token;
   }
