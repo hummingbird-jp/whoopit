@@ -43,6 +43,9 @@ class _MeetingPageState extends State<MeetingPage> {
     await [Permission.camera, Permission.microphone].request();
 
     RtcEngineContext _rtcEngineContext = RtcEngineContext(appId);
+
+    agoraEngine = await RtcEngine.createWithContext(_rtcEngineContext);
+    agoraEngine.destroy();
     agoraEngine = await RtcEngine.createWithContext(_rtcEngineContext);
 
     agoraEngine.setEventHandler(
@@ -290,7 +293,23 @@ class _MeetingPageState extends State<MeetingPage> {
 
   Widget _renderLocalPreview() {
     if (_joined) {
-      return rtc_local_view.SurfaceView();
+      return Stack(
+        children: [
+          rtc_local_view.SurfaceView(),
+          Visibility(
+            visible: _muted,
+            child: Container(
+              color: CupertinoTheme.of(context).primaryColor.withOpacity(0.8),
+              child: Center(
+                child: Icon(
+                  CupertinoIcons.mic_off,
+                  color: CupertinoTheme.of(context).primaryContrastingColor,
+                ),
+              ),
+            ),
+          ),
+        ],
+      );
     } else {
       return const CupertinoActivityIndicator();
     }
