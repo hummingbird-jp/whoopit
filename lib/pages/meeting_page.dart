@@ -292,13 +292,7 @@ class _MeetingPageState extends State<MeetingPage> {
     if (_joined) {
       return rtc_local_view.SurfaceView();
     } else {
-      return ElevatedButton(
-        onPressed: _join,
-        child: Icon(
-          CupertinoIcons.hand_point_right_fill,
-          color: CupertinoTheme.of(context).primaryContrastingColor,
-        ),
-      );
+      return const CupertinoActivityIndicator();
     }
   }
 
