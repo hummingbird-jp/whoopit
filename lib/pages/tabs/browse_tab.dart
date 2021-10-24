@@ -1,8 +1,5 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:whoopit/models/meeting_model.dart';
-
-List<Meeting> recentMeetings = [];
 
 class BrowseTab extends StatelessWidget {
   const BrowseTab({Key? key}) : super(key: key);

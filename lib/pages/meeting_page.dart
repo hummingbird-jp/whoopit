@@ -273,11 +273,6 @@ class _MeetingPageState extends State<MeetingPage> {
 
     final String account = FirebaseAuth.instance.currentUser!.uid;
     await agoraEngine.joinChannelWithUserAccount(token, channelName, account);
-
-    recentMeetings.add(Meeting(channel: channelName, organizerUid: account));
-
-    // TODO: remove
-    log('recentMeetings added: ${recentMeetingsList.last.channel}');
   }
 
   Future<String> _fetchTokenWithAccount() async {
