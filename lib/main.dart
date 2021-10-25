@@ -1,20 +1,15 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import 'package:whoopit/components/application_state.dart';
 import 'package:whoopit/constants.dart';
-import 'package:whoopit/pages/splash_page.dart';
+import 'package:whoopit/pages/tabs_page.dart';
+import 'package:whoopit/pages/welcome_page.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
-  runApp(
-    ChangeNotifierProvider(
-      create: (context) => ApplicationState(),
-      builder: (context, _) => Whoopit(),
-    ),
-  );
+  runApp(Whoopit());
 }
 
 class Whoopit extends StatelessWidget {
@@ -23,10 +18,9 @@ class Whoopit extends StatelessWidget {
     return CupertinoApp(
       title: 'Whoopit',
       theme: kThemeData,
-      home: Consumer<ApplicationState>(
-        builder: (context, appState, _) =>
-            SplashPage(loginState: appState.loginState),
-      ),
+      home: FirebaseAuth.instance.currentUser != null
+          ? const TabsPage()
+          : const WelcomePage(),
       localizationsDelegates: const [
         DefaultMaterialLocalizations.delegate,
         DefaultCupertinoLocalizations.delegate,

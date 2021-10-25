@@ -5,11 +5,12 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:whoopit/pages/tabs_page.dart';
 
-class LoginPage extends StatelessWidget {
-  LoginPage({Key? key}) : super(key: key);
+class SignupPage extends StatelessWidget {
+  SignupPage({Key? key}) : super(key: key);
 
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _nameController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -24,22 +25,30 @@ class LoginPage extends StatelessWidget {
                 autocorrect: false,
                 keyboardType: TextInputType.emailAddress,
                 controller: _emailController,
-                prefix: const Icon(CupertinoIcons.mail),
                 placeholder: 'Email',
+                prefix: const Icon(CupertinoIcons.mail),
               ),
               CupertinoTextFormFieldRow(
                 autocorrect: false,
                 controller: _passwordController,
-                prefix: const Icon(CupertinoIcons.shield_fill),
                 placeholder: 'Password',
+                prefix: const Icon(CupertinoIcons.shield_fill),
+              ),
+              CupertinoTextFormFieldRow(
+                controller: _nameController,
+                textCapitalization: TextCapitalization.words,
+                placeholder: 'Name',
+                prefix: const Icon(CupertinoIcons.profile_circled),
               ),
               CupertinoButton.filled(
-                child: const Text('LOG IN'),
+                child: const Text('SIGN UP'),
                 onPressed: () async {
-                  bool success = await _login(
+                  bool success = await _signUp(
                     _emailController.text,
+                    _nameController.text,
                     _passwordController.text,
-                    (e) => _showErrorDialog(context, 'Failed to log in', e),
+                    (err) =>
+                        _showErrorDialog(context, 'Failed to sign up', err),
                   );
 
                   if (success) {
@@ -64,16 +73,16 @@ class LoginPage extends StatelessWidget {
   }
 
   // ignore: avoid_void_async
-  Future<bool> _login(
+  Future<bool> _signUp(
     String email,
+    String displayName,
     String password,
     void Function(FirebaseAuthException err) errorCallback,
   ) async {
     try {
-      await FirebaseAuth.instance.signInWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
+      var credential = await FirebaseAuth.instance
+          .createUserWithEmailAndPassword(email: email, password: password);
+      await credential.user!.updateDisplayName(displayName);
       return FirebaseAuth.instance.currentUser != null;
     } on FirebaseAuthException catch (e) {
       errorCallback(e);
