@@ -1,6 +1,13 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
+class MeetingInfo {
+  MeetingInfo({required this.channelName, required this.organizerUid});
+
+  final String channelName;
+  final String organizerUid;
+}
+
 class BrowseTab extends StatelessWidget {
   const BrowseTab({Key? key}) : super(key: key);
 

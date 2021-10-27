@@ -2,9 +2,12 @@ import 'dart:developer';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_hooks/flutter_hooks.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:whoopit/models/authentication.dart';
 import 'package:whoopit/pages/meeting_page.dart';
 
-class HomeTab extends StatefulWidget {
+class HomeTab extends StatefulHookWidget {
   const HomeTab({Key? key}) : super(key: key);
 
   @override
@@ -18,6 +21,9 @@ class _HomeTabState extends State<HomeTab> {
 
   @override
   Widget build(BuildContext context) {
+    final Authentication authenticationModel =
+        useProvider(authenticationProvider);
+
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: Form(
@@ -26,6 +32,7 @@ class _HomeTabState extends State<HomeTab> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             CupertinoTextFormFieldRow(
+              readOnly: !authenticationModel.isSignedIn,
               controller: _channelController,
               keyboardType: TextInputType.text,
               autocorrect: false,
@@ -42,20 +49,31 @@ class _HomeTabState extends State<HomeTab> {
             ),
             const SizedBox(height: 24),
             CupertinoButton.filled(
-              child: const Text('JOIN'),
-              onPressed: () {
-                if (_formKey.currentState!.validate()) {
-                  FocusScope.of(context).unfocus();
-                  Navigator.push<Widget>(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const MeetingPage(),
+              child: authenticationModel.isSignedIn
+                  ? const Text(' JOIN')
+                  : Text(
+                      'Sign In to Join',
+                      style: TextStyle(
+                        color: CupertinoTheme.of(context).primaryColor,
+                      ),
                     ),
-                  );
-                } else {
-                  log('Channel is empty.');
-                }
-              },
+              // Enable when signed in
+              onPressed: authenticationModel.isSignedIn
+                  ? () {
+                      if (_formKey.currentState!.validate()) {
+                        FocusScope.of(context).unfocus();
+                        channelName = _channelController.text;
+                        Navigator.push<Widget>(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const MeetingPage(),
+                          ),
+                        );
+                      } else {
+                        log('Channel is empty.');
+                      }
+                    }
+                  : null,
             ),
           ],
         ),

@@ -12,9 +12,10 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:rounded_loading_button/rounded_loading_button.dart';
 
 const String appId = '8d98fb1cbd094508bff710b6a2d199ef';
-const String channelName = 'test';
-String token = '';
-late RtcEngine agoraEngine;
+
+late String token;
+late String channelName;
+late RtcEngine rtcEngine;
 
 class MeetingPage extends StatefulWidget {
   const MeetingPage({Key? key}) : super(key: key);
@@ -34,28 +35,31 @@ class _MeetingPageState extends State<MeetingPage> {
   @override
   void initState() {
     super.initState();
-    initPlatformState();
+    _initAgora();
   }
 
-  Future<void> initPlatformState() async {
+  Future<void> _initAgora() async {
     await [Permission.camera, Permission.microphone].request();
 
     RtcEngineContext _rtcEngineContext = RtcEngineContext(appId);
 
-    agoraEngine = await RtcEngine.createWithContext(_rtcEngineContext);
-    agoraEngine.destroy();
-    agoraEngine = await RtcEngine.createWithContext(_rtcEngineContext);
+    rtcEngine = await RtcEngine.createWithContext(_rtcEngineContext);
 
-    agoraEngine.setEventHandler(
+    // Just for hot-restart
+    // TODO: Remove in production
+    rtcEngine.destroy();
+    rtcEngine = await RtcEngine.createWithContext(_rtcEngineContext);
+
+    rtcEngine.setEventHandler(
       RtcEngineEventHandler(
         joinChannelSuccess: (channel, uid, elapsed) {
-          log('joinChannelSuccess: $channel $uid');
+          log('Succeeded to join a channel: channel: $channel, uid: $uid');
           setState(() {
             _joined = true;
           });
         },
         userJoined: (uid, elapsed) {
-          log('userJoined: $uid');
+          log('Remote user joined: $uid');
           setState(() {
             _remoteUid = uid;
           });
@@ -68,8 +72,6 @@ class _MeetingPageState extends State<MeetingPage> {
         },
       ),
     );
-
-    log('Agora Platform State initialized.');
 
     _join();
   }
@@ -168,7 +170,7 @@ class _MeetingPageState extends State<MeetingPage> {
                         ),
                       ),
                       onPressed: () async {
-                        await agoraEngine.leaveChannel();
+                        await rtcEngine.leaveChannel();
                         log('Left the channel.');
                         Navigator.pop(context);
                       },
@@ -238,7 +240,7 @@ class _MeetingPageState extends State<MeetingPage> {
                         ],
                       ),
                       onPressed: () async {
-                        await agoraEngine.muteLocalAudioStream(!_muted);
+                        await rtcEngine.muteLocalAudioStream(!_muted);
                         setState(() {
                           _muted = !_muted;
                         });
@@ -267,10 +269,12 @@ class _MeetingPageState extends State<MeetingPage> {
       token = newToken;
     });
 
-    await agoraEngine.enableVideo();
+    await rtcEngine.enableVideo();
 
     final String account = FirebaseAuth.instance.currentUser!.uid;
-    await agoraEngine.joinChannelWithUserAccount(token, channelName, account);
+    await rtcEngine.joinChannelWithUserAccount(token, channelName, account);
+
+    // recentMeetings に .add
   }
 
   Future<String> _fetchTokenWithAccount() async {

@@ -1,7 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-class SettingTab extends StatelessWidget {
+class SettingsTab extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Column(
