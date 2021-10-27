@@ -5,6 +5,12 @@ admin.initializeApp();
 
 exports.fetchTokenWithAccount = functions.https.onCall(
     (data, context) => {
+      if (context.app == undefined) {
+        throw new functions.https.HttpsError(
+            "failed-precondition",
+            "The function must be called from an App Check verified app.");
+      }
+
       const appID = "8d98fb1cbd094508bff710b6a2d199ef";
       const appCertificate = "dc369a70ad7543f8bee97b822f6d3372";
       const channelName = data.channelName;
