@@ -6,6 +6,7 @@ admin.initializeApp();
 exports.fetchTokenWithAccount = functions.https.onCall(
     (data, context) => {
       if (context.app == undefined) {
+        functions.logger.error("Rejected because not verified by App Check");
         throw new functions.https.HttpsError(
             "failed-precondition",
             "The function must be called from an App Check verified app.");
