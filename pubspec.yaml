@@ -1,5 +1,5 @@
-name: gtk_flutter
-description: Get to know Firebase with Flutter
+name: whoopit
+description: Made with love by hummingbird.
 publish_to: "none" # Remove this line if you wish to publish to pub.dev
 version: 1.0.0+1
 
@@ -16,9 +16,10 @@ dependencies:
   firebase_core: ^1.7.0
   flutter:
     sdk: flutter
+  flutter_hooks: ^0.18.0
   google_fonts: ^2.0.0
+  hooks_riverpod: ^0.14.0+5
   permission_handler: ^8.2.5
-  provider: ^6.0.1
   rounded_loading_button: ^2.0.9
 
 dev_dependencies:

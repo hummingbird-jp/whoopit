@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:developer';
 
 import 'package:agora_rtc_engine/rtc_engine.dart';
 import 'package:agora_rtc_engine/rtc_local_view.dart' as rtc_local_view;
@@ -11,18 +12,19 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:rounded_loading_button/rounded_loading_button.dart';
 
 const String appId = '8d98fb1cbd094508bff710b6a2d199ef';
-const String channelName = 'test';
-String token = '';
-late RtcEngine agoraEngine;
 
-class MeetingTab extends StatefulWidget {
-  const MeetingTab({Key? key}) : super(key: key);
+late String token;
+late String channelName;
+late RtcEngine rtcEngine;
+
+class MeetingPage extends StatefulWidget {
+  const MeetingPage({Key? key}) : super(key: key);
 
   @override
-  State<MeetingTab> createState() => _MeetingTabState();
+  State<MeetingPage> createState() => _MeetingPageState();
 }
 
-class _MeetingTabState extends State<MeetingTab> {
+class _MeetingPageState extends State<MeetingPage> {
   bool _joined = false;
   bool get joined => _joined;
   int _remoteUid = 0;
@@ -33,37 +35,45 @@ class _MeetingTabState extends State<MeetingTab> {
   @override
   void initState() {
     super.initState();
-    initPlatformState();
+    _initAgora();
   }
 
-  Future<void> initPlatformState() async {
+  Future<void> _initAgora() async {
     await [Permission.camera, Permission.microphone].request();
 
     RtcEngineContext _rtcEngineContext = RtcEngineContext(appId);
-    agoraEngine = await RtcEngine.createWithContext(_rtcEngineContext);
 
-    agoraEngine.setEventHandler(
+    rtcEngine = await RtcEngine.createWithContext(_rtcEngineContext);
+
+    // Just for hot-restart
+    // TODO: Remove in production
+    rtcEngine.destroy();
+    rtcEngine = await RtcEngine.createWithContext(_rtcEngineContext);
+
+    rtcEngine.setEventHandler(
       RtcEngineEventHandler(
         joinChannelSuccess: (channel, uid, elapsed) {
-          print('joinChannelSuccess: $channel $uid');
+          log('Succeeded to join a channel: channel: $channel, uid: $uid');
           setState(() {
             _joined = true;
           });
         },
         userJoined: (uid, elapsed) {
-          print('userJoined: $uid');
+          log('Remote user joined: $uid');
           setState(() {
             _remoteUid = uid;
           });
         },
         userOffline: (uid, reason) {
-          print('userOffline: $uid, reason: $reason');
+          log('userOffline: $uid, reason: $reason');
           setState(() {
             _remoteUid = 0;
           });
         },
       ),
     );
+
+    _join();
   }
 
   @override
@@ -93,9 +103,10 @@ class _MeetingTabState extends State<MeetingTab> {
                             ),
                           ),
                           const SizedBox(height: 12),
-                          const Text(
-                            'User A',
-                            style: TextStyle(
+                          Text(
+                            FirebaseAuth.instance.currentUser!.displayName ??
+                                'Anonymous',
+                            style: const TextStyle(
                               color: Colors.white,
                               fontSize: 20.0,
                             ),
@@ -159,8 +170,8 @@ class _MeetingTabState extends State<MeetingTab> {
                         ),
                       ),
                       onPressed: () async {
-                        await agoraEngine.leaveChannel();
-                        print('Left the channel.');
+                        await rtcEngine.leaveChannel();
+                        log('Left the channel.');
                         Navigator.pop(context);
                       },
                     ),
@@ -229,7 +240,7 @@ class _MeetingTabState extends State<MeetingTab> {
                         ],
                       ),
                       onPressed: () async {
-                        await agoraEngine.muteLocalAudioStream(!_muted);
+                        await rtcEngine.muteLocalAudioStream(!_muted);
                         setState(() {
                           _muted = !_muted;
                         });
@@ -251,20 +262,19 @@ class _MeetingTabState extends State<MeetingTab> {
   }
 
   Future<void> _join() async {
-    initPlatformState();
-
     final String newToken = await _fetchTokenWithAccount();
 
-    if (token == '') {
-      setState(() {
-        token = newToken;
-      });
-    }
+    // Using 'newToken' because cannot use async/await inside of setState
+    setState(() {
+      token = newToken;
+    });
 
-    await agoraEngine.enableVideo();
+    await rtcEngine.enableVideo();
 
     final String account = FirebaseAuth.instance.currentUser!.uid;
-    await agoraEngine.joinChannelWithUserAccount(token, channelName, account);
+    await rtcEngine.joinChannelWithUserAccount(token, channelName, account);
+
+    // recentMeetings に .add
   }
 
   Future<String> _fetchTokenWithAccount() async {
@@ -273,22 +283,32 @@ class _MeetingTabState extends State<MeetingTab> {
 
     final result = await callable({'channelName': channelName});
     final String token = result.data as String;
-    print('Got token via Cloud Functions: $token');
+    log('Got token via Cloud Functions: $token');
 
     return token;
   }
 
   Widget _renderLocalPreview() {
     if (_joined) {
-      return rtc_local_view.SurfaceView();
-    } else {
-      return ElevatedButton(
-        onPressed: _join,
-        child: Icon(
-          CupertinoIcons.hand_point_right_fill,
-          color: CupertinoTheme.of(context).primaryContrastingColor,
-        ),
+      return Stack(
+        children: [
+          rtc_local_view.SurfaceView(),
+          Visibility(
+            visible: _muted,
+            child: Container(
+              color: CupertinoTheme.of(context).primaryColor.withOpacity(0.8),
+              child: Center(
+                child: Icon(
+                  CupertinoIcons.mic_off,
+                  color: CupertinoTheme.of(context).primaryContrastingColor,
+                ),
+              ),
+            ),
+          ),
+        ],
       );
+    } else {
+      return const CupertinoActivityIndicator();
     }
   }
 

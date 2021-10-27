@@ -3,9 +3,9 @@
 <plist version="1.0">
 <dict>
 	<key>CLIENT_ID</key>
-	<string>418778353503-j7bsr8nrj6r2adb9nqsp4i4ajtno6bsn.apps.googleusercontent.com</string>
+	<string>418778353503-pfbvpb6bnbift0oa2okmor49kc4t4s4q.apps.googleusercontent.com</string>
 	<key>REVERSED_CLIENT_ID</key>
-	<string>com.googleusercontent.apps.418778353503-j7bsr8nrj6r2adb9nqsp4i4ajtno6bsn</string>
+	<string>com.googleusercontent.apps.418778353503-pfbvpb6bnbift0oa2okmor49kc4t4s4q</string>
 	<key>API_KEY</key>
 	<string>AIzaSyAqc4qW47Rn6iUbLWQw98DNMb7ZzDu4etM</string>
 	<key>GCM_SENDER_ID</key>
@@ -13,7 +13,7 @@
 	<key>PLIST_VERSION</key>
 	<string>1</string>
 	<key>BUNDLE_ID</key>
-	<string>com.yhakamay.gtkFlutter</string>
+	<string>com.hummingbird.whoopit</string>
 	<key>PROJECT_ID</key>
 	<string>fir-flutter-codelab-32edb</string>
 	<key>STORAGE_BUCKET</key>
@@ -29,6 +29,6 @@
 	<key>IS_SIGNIN_ENABLED</key>
 	<true></true>
 	<key>GOOGLE_APP_ID</key>
-	<string>1:418778353503:ios:10d6558407682ce9f370ea</string>
+	<string>1:418778353503:ios:17d73dd7e8b55c4cf370ea</string>
 </dict>
 </plist>

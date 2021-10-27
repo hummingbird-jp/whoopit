@@ -9,7 +9,7 @@
       "client_info": {
         "mobilesdk_app_id": "1:418778353503:android:595ba0cde9dc914ff370ea",
         "android_client_info": {
-          "package_name": "com.yhakamay.gtk_flutter"
+          "package_name": "com.yhakamay.whoopit"
         }
       },
       "oauth_client": [
@@ -34,7 +34,7 @@
               "client_id": "418778353503-j7bsr8nrj6r2adb9nqsp4i4ajtno6bsn.apps.googleusercontent.com",
               "client_type": 2,
               "ios_info": {
-                "bundle_id": "com.yhakamay.gtkFlutter"
+                "bundle_id": "com.yhakamay.whoopit"
               }
             }
           ]
