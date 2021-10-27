@@ -1,9 +1,7 @@
-import 'dart:async';
-
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:whoopit/pages/tabs_page.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:whoopit/models/authentication.dart';
 
 class LoginPage extends StatelessWidget {
   LoginPage({Key? key}) : super(key: key);
@@ -13,6 +11,8 @@ class LoginPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final authenticationModel = context.read(authenticationProvider);
+
     return CupertinoPageScaffold(
       child: SafeArea(
         child: Padding(
@@ -34,21 +34,17 @@ class LoginPage extends StatelessWidget {
                 placeholder: 'Password',
               ),
               CupertinoButton.filled(
-                child: const Text('LOG IN'),
+                child: const Text('SIGN IN'),
                 onPressed: () async {
-                  bool success = await _login(
+                  bool success = await authenticationModel.signIn(
                     _emailController.text,
                     _passwordController.text,
-                    (e) => _showErrorDialog(context, 'Failed to log in', e),
+                    (err) =>
+                        _showErrorDialog(context, 'Failed to Sign In', err),
                   );
 
                   if (success) {
-                    Navigator.push<Widget>(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const TabsPage(),
-                      ),
-                    );
+                    Navigator.pop(context);
                   }
                 },
               ),
@@ -61,24 +57,6 @@ class LoginPage extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  // ignore: avoid_void_async
-  Future<bool> _login(
-    String email,
-    String password,
-    void Function(FirebaseAuthException err) errorCallback,
-  ) async {
-    try {
-      await FirebaseAuth.instance.signInWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
-      return FirebaseAuth.instance.currentUser != null;
-    } on FirebaseAuthException catch (e) {
-      errorCallback(e);
-      return FirebaseAuth.instance.currentUser != null;
-    }
   }
 
   void _showErrorDialog(BuildContext context, String title, Exception e) {

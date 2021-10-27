@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:whoopit/pages/tabs/browse_tab.dart';
 import 'package:whoopit/pages/tabs/home_tab.dart';
 import 'package:whoopit/pages/tabs/profile_tab.dart';
-import 'package:whoopit/pages/tabs/search_tab.dart';
+import 'package:whoopit/pages/tabs/settings_tab.dart';
 
 class TabsPage extends StatefulWidget {
   const TabsPage({Key? key}) : super(key: key);
@@ -17,7 +17,7 @@ class _TabsPageState extends State<TabsPage> {
     const HomeTab(),
     const BrowseTab(),
     const ProfileTab(),
-    const SearchTab(),
+    SettingsTab(),
   ];
 
   @override
@@ -50,8 +50,8 @@ class _TabsPageState extends State<TabsPage> {
                 label: 'Profile',
               ),
               BottomNavigationBarItem(
-                icon: Icon(CupertinoIcons.search),
-                label: 'Search',
+                icon: Icon(CupertinoIcons.settings),
+                label: 'Settings',
               ),
             ],
           ),
