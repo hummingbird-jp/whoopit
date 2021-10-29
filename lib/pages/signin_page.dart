@@ -2,9 +2,10 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:whoopit/models/authentication.dart';
+import 'package:whoopit/pages/signup_page.dart';
 
-class LoginPage extends StatelessWidget {
-  LoginPage({Key? key}) : super(key: key);
+class SigninPage extends StatelessWidget {
+  SigninPage({Key? key}) : super(key: key);
 
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
@@ -47,6 +48,15 @@ class LoginPage extends StatelessWidget {
                     Navigator.pop(context);
                   }
                 },
+              ),
+              CupertinoButton(
+                child: const Text('Don\'t have an account? Sign up here.'),
+                onPressed: () => Navigator.push<Widget>(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => SignupPage(),
+                  ),
+                ),
               ),
               CupertinoButton(
                 child: const Icon(CupertinoIcons.arrow_left),
