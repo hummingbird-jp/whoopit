@@ -21,8 +21,6 @@ class _TabsPageState extends State<TabsPage> {
     const HomeTab(),
     const MeetTab(),
     const BrowseTab(),
-    //const ProfileTab(),
-    SettingsTab(),
   ];
 
   @override
@@ -75,6 +73,17 @@ class _TabsPageState extends State<TabsPage> {
                             },
                             child: const Text('Sign In'),
                           ),
+                    CupertinoActionSheetAction(
+                      onPressed: () {
+                        Navigator.push<Widget>(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => SettingsTab(),
+                          ),
+                        );
+                      },
+                      child: const Text('Settings'),
+                    ),
                     // TODO: Implement 'Update Profile' button
                     //CupertinoActionSheetAction(
                     //  onPressed: () {},
@@ -95,20 +104,16 @@ class _TabsPageState extends State<TabsPage> {
           tabBar: CupertinoTabBar(
             items: const [
               BottomNavigationBarItem(
-                icon: Icon(CupertinoIcons.heart_fill),
+                icon: Icon(CupertinoIcons.music_house_fill),
                 label: 'Home',
               ),
               BottomNavigationBarItem(
-                icon: Icon(CupertinoIcons.phone_fill),
+                icon: Icon(CupertinoIcons.bubble_left_bubble_right_fill),
                 label: 'Meet',
               ),
               BottomNavigationBarItem(
                 icon: Icon(CupertinoIcons.square_grid_2x2_fill),
                 label: 'Browse',
-              ),
-              BottomNavigationBarItem(
-                icon: Icon(CupertinoIcons.settings),
-                label: 'Settings',
               ),
             ],
           ),
