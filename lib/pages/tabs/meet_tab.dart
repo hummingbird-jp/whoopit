@@ -1,4 +1,5 @@
 import 'dart:developer';
+import 'dart:math' as math;
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -31,28 +32,29 @@ class _HomeTabState extends State<MeetTab> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            CupertinoTextFormFieldRow(
-              readOnly: !authenticationModel.isSignedIn,
-              controller: _channelController,
-              keyboardType: TextInputType.text,
-              autocorrect: false,
-              cursorColor: CupertinoTheme.of(context).primaryContrastingColor,
-              style: const TextStyle(color: Colors.white),
-              textCapitalization: TextCapitalization.none,
-              placeholder: 'Channel',
-              validator: (value) {
-                if (value!.isEmpty) {
-                  return 'Enter a channel';
-                }
-                return null;
-              },
-            ),
-            const SizedBox(height: 24),
+            ////CupertinoTextFormFieldRow(
+            ////  readOnly: !authenticationModel.isSignedIn,
+            ////  controller: _channelController,
+            ////  keyboardType: TextInputType.text,
+            ////  autocorrect: false,
+            ////  cursorColor: CupertinoTheme.of(context).primaryContrastingColor,
+            ////  style: const TextStyle(color: Colors.white),
+            ////  textCapitalization: TextCapitalization.none,
+            ////  placeholder: 'Channel',
+            ////  validator: (value) {
+            ////    if (value!.isEmpty) {
+            ////      return 'Enter a channel';
+            ////    }
+            ////    return null;
+            ////  },
+            ////),
+            //const SizedBox(height: 24),
+            // Create button
             CupertinoButton.filled(
               child: authenticationModel.isSignedIn
-                  ? const Text(' JOIN')
+                  ? const Text('CREATE')
                   : Text(
-                      'Sign In to Join',
+                      'Sign In to Create',
                       style: TextStyle(
                         color: CupertinoTheme.of(context).primaryColor,
                       ),
@@ -60,22 +62,53 @@ class _HomeTabState extends State<MeetTab> {
               // Enable when signed in
               onPressed: authenticationModel.isSignedIn
                   ? () {
-                      if (_formKey.currentState!.validate()) {
-                        FocusScope.of(context).unfocus();
-                        channelName = _channelController.text;
-                        Navigator.push<Widget>(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => const MeetingPage(),
-                          ),
-                        );
-                      } else {
-                        log('Channel is empty.');
-                      }
+                      channelName = _getRandomString(10);
+                      log('channelName: $channelName');
+                      Navigator.push<Widget>(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const MeetingPage(),
+                        ),
+                      );
                     }
                   : null,
             ),
+            // Join button
+            CupertinoButton(
+              child: const Text('JOIN'),
+              // Enable when signed in
+              onPressed: null,
+              //onPressed: () {
+              //if (_formKey.currentState!.validate()) {
+              //  FocusScope.of(context).unfocus();
+              //  channelName = _channelController.text;
+              //  Navigator.push<Widget>(
+              //    context,
+              //    MaterialPageRoute(
+              //      builder: (context) => const MeetingPage(),
+              //    ),
+              //  );
+              //} else {
+              //  log('Channel is empty.');
+              //}
+              //},
+            ),
           ],
+        ),
+      ),
+    );
+  }
+
+  String _getRandomString(int length) {
+    const String _alphaNum =
+        'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890';
+    final math.Random _random = math.Random();
+
+    return String.fromCharCodes(
+      Iterable.generate(
+        length,
+        (_) => _alphaNum.codeUnitAt(
+          _random.nextInt(_alphaNum.length),
         ),
       ),
     );
