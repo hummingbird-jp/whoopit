@@ -8,8 +8,10 @@ import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:rounded_loading_button/rounded_loading_button.dart';
+import 'package:share_plus/share_plus.dart';
 
 const String appId = '8d98fb1cbd094508bff710b6a2d199ef';
 
@@ -140,6 +142,16 @@ class _MeetingPageState extends State<MeetingPage> {
                   ],
                 ),
               ],
+            ),
+            Align(
+              alignment: const Alignment(0.00, 0.60),
+              child: CupertinoButton.filled(
+                child: const Text('Share to friends!'),
+                onPressed: () {
+                  Clipboard.setData(ClipboardData(text: channelName));
+                  Share.share(channelName);
+                },
+              ),
             ),
             Positioned(
               bottom: 0,
