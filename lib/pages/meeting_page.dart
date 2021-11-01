@@ -13,6 +13,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:rounded_loading_button/rounded_loading_button.dart';
 import 'package:shake/shake.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:vibration/vibration.dart';
 
 late String token;
 late String channelName;
@@ -45,16 +46,20 @@ class _MeetingPageState extends State<MeetingPage> {
     _shakeDetector = ShakeDetector.autoStart(onPhoneShake: _onShake);
   }
 
-  void _onShake() {
+  Future<void> _onShake() async {
     log('_shakeDetector.count: ${_shakeDetector.mShakeCount}');
 
-    if (_shakeDetector.mShakeCount > 3) {
+    if (_isShaking == true) {
+      return;
+    } else if (_shakeDetector.mShakeCount == 3) {
       setState(() {
         _isShaking = true;
       });
+
+      Vibration.vibrate();
     }
 
-    Future.delayed(const Duration(milliseconds: 5000), () {
+    Future.delayed(const Duration(milliseconds: 8000), () {
       setState(() {
         _isShaking = false;
       });
@@ -295,6 +300,15 @@ class _MeetingPageState extends State<MeetingPage> {
                       },
                     ),
                   ],
+                ),
+              ),
+            ),
+            Visibility(
+              visible: _isShaking,
+              child: const Center(
+                child: Text(
+                  '🍺',
+                  style: TextStyle(fontSize: 160.0),
                 ),
               ),
             ),
