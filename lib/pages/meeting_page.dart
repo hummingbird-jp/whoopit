@@ -13,6 +13,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:rounded_loading_button/rounded_loading_button.dart';
 import 'package:shake/shake.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:vibration/vibration.dart';
 
 late String token;
 late String channelName;
@@ -45,16 +46,20 @@ class _MeetingPageState extends State<MeetingPage> {
     _shakeDetector = ShakeDetector.autoStart(onPhoneShake: _onShake);
   }
 
-  void _onShake() {
+  Future<void> _onShake() async {
     log('_shakeDetector.count: ${_shakeDetector.mShakeCount}');
 
-    if (_shakeDetector.mShakeCount > 3) {
+    if (_isShaking == true) {
+      return;
+    } else if (_shakeDetector.mShakeCount == 3) {
       setState(() {
         _isShaking = true;
       });
+
+      Vibration.vibrate();
     }
 
-    Future.delayed(const Duration(milliseconds: 5000), () {
+    Future.delayed(const Duration(milliseconds: 8000), () {
       setState(() {
         _isShaking = false;
       });
@@ -102,10 +107,11 @@ class _MeetingPageState extends State<MeetingPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: const CupertinoNavigationBar(
+      appBar: AppBar(
         automaticallyImplyLeading: true,
+        title: Text(channelName),
       ),
-      backgroundColor: CupertinoTheme.of(context).scaffoldBackgroundColor,
+      backgroundColor: Theme.of(context).colorScheme.background,
       body: SafeArea(
         child: Stack(
           children: [
@@ -119,20 +125,16 @@ class _MeetingPageState extends State<MeetingPage> {
                       padding: const EdgeInsets.symmetric(vertical: 10.0),
                       child: Column(
                         children: [
-                          Visibility(
-                            visible: _isShaking,
-                            child: const Text(
-                              '🍺',
-                              style: TextStyle(fontSize: 24.0),
-                            ),
-                          ),
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(50),
-                            child: Container(
-                              color: CupertinoTheme.of(context).primaryColor,
-                              width: 100.0,
-                              height: 100.0,
-                              child: _renderLocalPreview(),
+                          Hero(
+                            tag: 'profile',
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(50),
+                              child: Container(
+                                color: Theme.of(context).colorScheme.primary,
+                                width: 100.0,
+                                height: 100.0,
+                                child: _renderLocalPreview(),
+                              ),
                             ),
                           ),
                           const SizedBox(height: 12),
@@ -194,24 +196,18 @@ class _MeetingPageState extends State<MeetingPage> {
                     ElevatedButton(
                       style: ButtonStyle(
                         backgroundColor: MaterialStateProperty.all<Color>(
-                          CupertinoTheme.of(context).primaryColor,
+                          Theme.of(context).colorScheme.primary,
                         ),
                         shape: MaterialStateProperty.all(
                           RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(20),
                             side: BorderSide(
-                              color: CupertinoTheme.of(context).primaryColor,
+                              color: Theme.of(context).colorScheme.primary,
                             ),
                           ),
                         ),
                       ),
-                      child: Text(
-                        '👋 Leave',
-                        style: TextStyle(
-                          color: CupertinoTheme.of(context)
-                              .primaryContrastingColor,
-                        ),
-                      ),
+                      child: const Text('👋 Leave'),
                       onPressed: () async {
                         await rtcEngine.leaveChannel();
                         log('Left the channel.');
@@ -221,24 +217,18 @@ class _MeetingPageState extends State<MeetingPage> {
                     ElevatedButton(
                       style: ButtonStyle(
                         backgroundColor: MaterialStateProperty.all<Color>(
-                          CupertinoTheme.of(context).primaryColor,
+                          Theme.of(context).colorScheme.primary,
                         ),
                         shape: MaterialStateProperty.all(
                           RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(30),
                             side: BorderSide(
-                              color: CupertinoTheme.of(context).primaryColor,
+                              color: Theme.of(context).colorScheme.primary,
                             ),
                           ),
                         ),
                       ),
-                      child: Text(
-                        '👏',
-                        style: TextStyle(
-                          color: CupertinoTheme.of(context)
-                              .primaryContrastingColor,
-                        ),
-                      ),
+                      child: const Text('👏'),
                       onPressed: null,
                       //onPressed: () {
                       // TODO: Implement functionallity
@@ -254,11 +244,11 @@ class _MeetingPageState extends State<MeetingPage> {
                       resetAfterDuration: true,
                       successIcon: CupertinoIcons.mic_fill,
                       failedIcon: CupertinoIcons.mic_off,
-                      successColor: CupertinoTheme.of(context).primaryColor,
+                      successColor: Theme.of(context).colorScheme.primary,
                       errorColor: const Color(0xFFFF2D34),
                       color: _muted
                           ? const Color(0xFFFF2D34)
-                          : CupertinoTheme.of(context).primaryContrastingColor,
+                          : Theme.of(context).colorScheme.secondary,
                       child: Row(
                         children: [
                           Icon(
@@ -267,17 +257,15 @@ class _MeetingPageState extends State<MeetingPage> {
                                 : CupertinoIcons.mic_fill,
                             size: 12,
                             color: _muted
-                                ? CupertinoTheme.of(context)
-                                    .primaryContrastingColor
-                                : CupertinoTheme.of(context).primaryColor,
+                                ? Theme.of(context).colorScheme.secondary
+                                : Theme.of(context).colorScheme.primary,
                           ),
                           Text(
                             _muted ? 'Muted' : 'Unmuted',
                             style: TextStyle(
                               color: _muted
-                                  ? CupertinoTheme.of(context)
-                                      .primaryContrastingColor
-                                  : CupertinoTheme.of(context).primaryColor,
+                                  ? Theme.of(context).colorScheme.secondary
+                                  : Theme.of(context).colorScheme.primary,
                             ),
                           ),
                         ],
@@ -295,6 +283,15 @@ class _MeetingPageState extends State<MeetingPage> {
                       },
                     ),
                   ],
+                ),
+              ),
+            ),
+            Visibility(
+              visible: _isShaking,
+              child: const Center(
+                child: Text(
+                  '🍺',
+                  style: TextStyle(fontSize: 160.0),
                 ),
               ),
             ),
@@ -339,11 +336,11 @@ class _MeetingPageState extends State<MeetingPage> {
           Visibility(
             visible: _muted,
             child: Container(
-              color: CupertinoTheme.of(context).primaryColor.withOpacity(0.8),
+              color: Theme.of(context).colorScheme.primary.withOpacity(0.8),
               child: Center(
                 child: Icon(
                   CupertinoIcons.mic_off,
-                  color: CupertinoTheme.of(context).primaryContrastingColor,
+                  color: Theme.of(context).colorScheme.secondary,
                 ),
               ),
             ),

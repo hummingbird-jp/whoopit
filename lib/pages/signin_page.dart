@@ -14,40 +14,60 @@ class SigninPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final authenticationModel = context.read(authenticationProvider);
 
-    return CupertinoPageScaffold(
-      child: SafeArea(
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('SIGN IN'),
+      ),
+      backgroundColor: Theme.of(context).colorScheme.background,
+      body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(8.0),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              CupertinoTextFormFieldRow(
-                autocorrect: false,
-                keyboardType: TextInputType.emailAddress,
-                controller: _emailController,
-                prefix: const Icon(CupertinoIcons.mail),
-                placeholder: 'Email',
+              Hero(
+                tag: 'email-form',
+                child: CupertinoTextFormFieldRow(
+                  autocorrect: false,
+                  keyboardType: TextInputType.emailAddress,
+                  controller: _emailController,
+                  prefix: const Icon(CupertinoIcons.mail),
+                  placeholder: 'Email',
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onBackground,
+                  ),
+                ),
               ),
-              CupertinoTextFormFieldRow(
-                autocorrect: false,
-                controller: _passwordController,
-                prefix: const Icon(CupertinoIcons.shield_fill),
-                placeholder: 'Password',
+              Hero(
+                tag: 'password-form',
+                child: CupertinoTextFormFieldRow(
+                  autocorrect: false,
+                  obscureText: true,
+                  controller: _passwordController,
+                  prefix: const Icon(CupertinoIcons.shield_fill),
+                  placeholder: 'Password',
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onBackground,
+                  ),
+                ),
               ),
-              CupertinoButton.filled(
-                child: const Text('SIGN IN'),
-                onPressed: () async {
-                  bool success = await authenticationModel.signIn(
-                    _emailController.text,
-                    _passwordController.text,
-                    (err) =>
-                        _showErrorDialog(context, 'Failed to Sign In', err),
-                  );
+              Hero(
+                tag: 'signin-button',
+                child: CupertinoButton.filled(
+                  child: const Text('SIGN IN'),
+                  onPressed: () async {
+                    bool success = await authenticationModel.signIn(
+                      _emailController.text,
+                      _passwordController.text,
+                      (err) =>
+                          _showErrorDialog(context, 'Failed to Sign In', err),
+                    );
 
-                  if (success) {
-                    Navigator.pop(context);
-                  }
-                },
+                    if (success) {
+                      Navigator.pop(context);
+                    }
+                  },
+                ),
               ),
               CupertinoButton(
                 child: const Text('Don\'t have an account? Sign up here.'),

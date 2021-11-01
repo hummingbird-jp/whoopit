@@ -28,7 +28,7 @@ Future<void> main() async {
 class Whoopit extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return CupertinoApp(
+    return MaterialApp(
       title: 'Whoopit',
       theme: kThemeData,
       home: const HomePage(),

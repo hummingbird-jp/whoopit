@@ -2,6 +2,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:whoopit/models/authentication.dart';
+import 'package:whoopit/pages/home_page.dart';
 
 class SignupPage extends StatelessWidget {
   SignupPage({Key? key}) : super(key: key);
@@ -14,47 +15,71 @@ class SignupPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final authenticationModel = context.read(authenticationProvider);
 
-    return CupertinoPageScaffold(
-      child: SafeArea(
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('SIGN UP'),
+      ),
+      backgroundColor: Theme.of(context).colorScheme.background,
+      body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(8.0),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              CupertinoTextFormFieldRow(
-                autocorrect: false,
-                keyboardType: TextInputType.emailAddress,
-                controller: _emailController,
-                placeholder: 'Email',
-                prefix: const Icon(CupertinoIcons.mail),
+              Hero(
+                tag: 'email-form',
+                child: CupertinoTextFormFieldRow(
+                  autocorrect: false,
+                  keyboardType: TextInputType.emailAddress,
+                  controller: _emailController,
+                  placeholder: 'Email',
+                  prefix: const Icon(CupertinoIcons.mail),
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onBackground,
+                  ),
+                ),
               ),
-              CupertinoTextFormFieldRow(
-                autocorrect: false,
-                controller: _passwordController,
-                placeholder: 'Password',
-                prefix: const Icon(CupertinoIcons.shield_fill),
+              Hero(
+                tag: 'password-form',
+                child: CupertinoTextFormFieldRow(
+                  autocorrect: false,
+                  obscureText: true,
+                  controller: _passwordController,
+                  placeholder: 'Password',
+                  prefix: const Icon(CupertinoIcons.shield_fill),
+                  style: TextStyle(
+                    color: Theme.of(context).colorScheme.onBackground,
+                  ),
+                ),
               ),
               CupertinoTextFormFieldRow(
                 controller: _nameController,
                 textCapitalization: TextCapitalization.words,
                 placeholder: 'Name',
                 prefix: const Icon(CupertinoIcons.profile_circled),
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onBackground,
+                ),
               ),
-              CupertinoButton.filled(
-                child: const Text('SIGN UP'),
-                onPressed: () async {
-                  bool success = await authenticationModel.signUp(
-                    _emailController.text,
-                    _nameController.text,
-                    _passwordController.text,
-                    (err) =>
-                        _showErrorDialog(context, 'Failed to Sign Up', err),
-                  );
+              Hero(
+                tag: 'signin-button',
+                child: CupertinoButton.filled(
+                  child: const Text('SIGN UP'),
+                  onPressed: () async {
+                    bool success = await authenticationModel.signUp(
+                      _emailController.text,
+                      _nameController.text,
+                      _passwordController.text,
+                      (err) =>
+                          _showErrorDialog(context, 'Failed to Sign Up', err),
+                    );
 
-                  if (success) {
-                    Navigator.pop(context);
-                  }
-                },
+                    if (success) {
+                      Navigator.pop(context);
+                      Navigator.pop(context);
+                    }
+                  },
+                ),
               ),
               CupertinoButton(
                 child: const Icon(CupertinoIcons.arrow_left),
