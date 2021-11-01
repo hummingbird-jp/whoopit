@@ -109,6 +109,7 @@ class _MeetingPageState extends State<MeetingPage> {
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: true,
+        title: Text(channelName),
       ),
       backgroundColor: Theme.of(context).colorScheme.background,
       body: SafeArea(
