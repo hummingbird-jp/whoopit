@@ -26,70 +26,75 @@ class _TabsPageState extends State<HomePage> {
     return WillPopScope(
       onWillPop: () async => false,
       child: Scaffold(
-        appBar: CupertinoNavigationBar(
+        appBar: AppBar(
           automaticallyImplyLeading: false,
-          trailing: GestureDetector(
-            onTap: () {
-              showCupertinoModalPopup<void>(
-                context: context,
-                builder: (context) => CupertinoActionSheet(
-                  message: authenticationModel.isSignedIn
-                      ? Text(
-                          'You\'re signed in as ${authenticationModel.user!.displayName}',
-                        )
-                      : null,
-                  actions: [
-                    authenticationModel.isSignedIn
-                        ? CupertinoActionSheetAction(
-                            isDestructiveAction: true,
-                            isDefaultAction: true,
-                            onPressed: () {
-                              authenticationModel.signOut();
-                              Navigator.pop(context);
-                            },
-                            child: const Text('Sign Out'),
+          actions: [
+            GestureDetector(
+              onTap: () {
+                showCupertinoModalPopup<void>(
+                  context: context,
+                  builder: (context) => CupertinoActionSheet(
+                    message: authenticationModel.isSignedIn
+                        ? Text(
+                            'You\'re signed in as ${authenticationModel.user!.displayName}',
                           )
-                        : CupertinoActionSheetAction(
-                            isDefaultAction: true,
-                            onPressed: () {
-                              Navigator.pop(context);
-                              Navigator.push<Widget>(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => SigninPage(),
-                                ),
-                              );
-                            },
-                            child: const Text('Sign In'),
-                          ),
-                    // TODO: Implement 'Update Profile' button
-                    //CupertinoActionSheetAction(
-                    //  onPressed: () {},
-                    //  child: const Text('Update Profile'),
-                    //),
-                  ],
-                  cancelButton: CupertinoActionSheetAction(
-                    child: const Text('Cancel'),
-                    onPressed: () => Navigator.pop(context),
+                        : null,
+                    actions: [
+                      authenticationModel.isSignedIn
+                          ? CupertinoActionSheetAction(
+                              isDestructiveAction: true,
+                              isDefaultAction: true,
+                              onPressed: () {
+                                authenticationModel.signOut();
+                                Navigator.pop(context);
+                              },
+                              child: const Text('Sign Out'),
+                            )
+                          : CupertinoActionSheetAction(
+                              isDefaultAction: true,
+                              onPressed: () {
+                                Navigator.pop(context);
+                                Navigator.push<Widget>(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => SigninPage(),
+                                  ),
+                                );
+                              },
+                              child: const Text('Sign In'),
+                            ),
+                      // TODO: Implement 'Update Profile' button
+                      //CupertinoActionSheetAction(
+                      //  onPressed: () {},
+                      //  child: const Text('Update Profile'),
+                      //),
+                    ],
+                    cancelButton: CupertinoActionSheetAction(
+                      child: const Text('Cancel'),
+                      onPressed: () => Navigator.pop(context),
+                    ),
                   ),
-                ),
-              );
-            },
-            child: const Icon(CupertinoIcons.profile_circled),
-          ),
+                );
+              },
+              child: const Hero(
+                tag: 'profile',
+                child: Icon(CupertinoIcons.profile_circled),
+              ),
+            ),
+            const SizedBox(width: 24.0),
+          ],
         ),
-        backgroundColor: CupertinoTheme.of(context).scaffoldBackgroundColor,
+        backgroundColor: Theme.of(context).colorScheme.background,
         body: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
           child: ListView(
             children: [
-              SizedBox(
+              const SizedBox(
                 height: 320,
                 child: Center(
                   child: Text(
                     'Whoopit',
                     style: TextStyle(
-                      color: CupertinoTheme.of(context).primaryContrastingColor,
                       fontSize: 48,
                       fontWeight: FontWeight.bold,
                     ),

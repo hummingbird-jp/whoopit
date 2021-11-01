@@ -14,8 +14,12 @@ class SigninPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final authenticationModel = context.read(authenticationProvider);
 
-    return CupertinoPageScaffold(
-      child: SafeArea(
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('SIGN IN'),
+      ),
+      backgroundColor: Theme.of(context).colorScheme.background,
+      body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(8.0),
           child: Column(
@@ -27,12 +31,18 @@ class SigninPage extends StatelessWidget {
                 controller: _emailController,
                 prefix: const Icon(CupertinoIcons.mail),
                 placeholder: 'Email',
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onBackground,
+                ),
               ),
               CupertinoTextFormFieldRow(
                 autocorrect: false,
                 controller: _passwordController,
                 prefix: const Icon(CupertinoIcons.shield_fill),
                 placeholder: 'Password',
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.onBackground,
+                ),
               ),
               CupertinoButton.filled(
                 child: const Text('SIGN IN'),
