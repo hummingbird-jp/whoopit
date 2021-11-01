@@ -162,7 +162,10 @@ class _TabsPageState extends State<HomePage> {
                   GestureDetector(
                     onTap: authenticationModel.isSignedIn
                         ? () => _onJoin(_getRandomString(10))
-                        : null,
+                        : () => Navigator.push<Widget>(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => SigninPage())),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(20.0),
                       child: Container(
@@ -179,9 +182,10 @@ class _TabsPageState extends State<HomePage> {
                                   ),
                                 )
                               : Text(
-                                  'Sign In first',
+                                  'Sign In to Create',
                                   style: TextStyle(
-                                    color: Colors.white.withOpacity(0.5),
+                                    color: Colors.white.withOpacity(0.9),
+                                    fontWeight: FontWeight.bold,
                                   ),
                                 ),
                         ),
