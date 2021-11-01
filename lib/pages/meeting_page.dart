@@ -124,13 +124,16 @@ class _MeetingPageState extends State<MeetingPage> {
                       padding: const EdgeInsets.symmetric(vertical: 10.0),
                       child: Column(
                         children: [
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(50),
-                            child: Container(
-                              color: Theme.of(context).colorScheme.primary,
-                              width: 100.0,
-                              height: 100.0,
-                              child: _renderLocalPreview(),
+                          Hero(
+                            tag: 'profile',
+                            child: ClipRRect(
+                              borderRadius: BorderRadius.circular(50),
+                              child: Container(
+                                color: Theme.of(context).colorScheme.primary,
+                                width: 100.0,
+                                height: 100.0,
+                                child: _renderLocalPreview(),
+                              ),
                             ),
                           ),
                           const SizedBox(height: 12),
