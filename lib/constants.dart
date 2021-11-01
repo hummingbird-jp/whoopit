@@ -1,10 +1,24 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-CupertinoThemeData kThemeData = const CupertinoThemeData(
-  brightness: Brightness.dark,
-  primaryColor: Color(0xFF4642B3),
-  primaryContrastingColor: Color(0xFFFFCC4A),
-  barBackgroundColor: Color(0xFF000030),
-  scaffoldBackgroundColor: Color(0xFF000030),
+ThemeData kThemeData = ThemeData(
+  colorScheme: const ColorScheme(
+    brightness: Brightness.dark,
+    primary: Color(0xFF4642B3),
+    primaryVariant: Color(0xFF001A82),
+    secondary: Color(0xFFFFCC4A),
+    secondaryVariant: Color(0xFFC89B0E),
+    error: Color(0xFFFF2D34),
+    surface: Color(0xFF000030),
+    background: Color(0xFF000030),
+    onPrimary: Colors.white,
+    onSecondary: Color(0xFF4642B3),
+    onError: Color(0xFF0D0D0D),
+    onSurface: Colors.white,
+    onBackground: Colors.white,
+  ),
+  appBarTheme: const AppBarTheme(
+    backgroundColor: Color(0xFF000030),
+    shadowColor: Colors.transparent,
+  ),
 );
