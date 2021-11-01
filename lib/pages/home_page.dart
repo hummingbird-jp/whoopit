@@ -7,7 +7,6 @@ import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:whoopit/models/authentication.dart';
 import 'package:whoopit/pages/signin_page.dart';
-import 'package:whoopit/pages/tabs/settings_tab.dart';
 
 import 'meeting_page.dart';
 
@@ -26,8 +25,8 @@ class _TabsPageState extends State<HomePage> {
 
     return WillPopScope(
       onWillPop: () async => false,
-      child: CupertinoPageScaffold(
-        navigationBar: CupertinoNavigationBar(
+      child: Scaffold(
+        appBar: CupertinoNavigationBar(
           automaticallyImplyLeading: false,
           trailing: GestureDetector(
             onTap: () {
@@ -63,17 +62,6 @@ class _TabsPageState extends State<HomePage> {
                             },
                             child: const Text('Sign In'),
                           ),
-                    CupertinoActionSheetAction(
-                      onPressed: () {
-                        Navigator.push<Widget>(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => SettingsTab(),
-                          ),
-                        );
-                      },
-                      child: const Text('Settings'),
-                    ),
                     // TODO: Implement 'Update Profile' button
                     //CupertinoActionSheetAction(
                     //  onPressed: () {},
@@ -90,105 +78,127 @@ class _TabsPageState extends State<HomePage> {
             child: const Icon(CupertinoIcons.profile_circled),
           ),
         ),
-        child: CupertinoPageScaffold(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0),
-            child: ListView(
-              children: [
-                SizedBox(
-                  height: 400,
-                  child: Center(
-                    child: Text(
-                      'Whoopit',
-                      style: TextStyle(
-                        color:
-                            CupertinoTheme.of(context).primaryContrastingColor,
-                        fontSize: 48,
-                        fontWeight: FontWeight.bold,
-                      ),
+        backgroundColor: CupertinoTheme.of(context).scaffoldBackgroundColor,
+        body: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16.0),
+          child: ListView(
+            children: [
+              SizedBox(
+                height: 320,
+                child: Center(
+                  child: Text(
+                    'Whoopit',
+                    style: TextStyle(
+                      color: CupertinoTheme.of(context).primaryContrastingColor,
+                      fontSize: 48,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
                 ),
-                SizedBox(
-                  height: 48,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'What\'s Whoopit?',
-                        style: TextStyle(
-                          color: Colors.white.withOpacity(0.5),
-                        ),
-                      ),
-                      Icon(
-                        CupertinoIcons.right_chevron,
+              ),
+              SizedBox(
+                height: 48,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Text(
+                      'What\'s Whoopit?',
+                      style: TextStyle(
                         color: Colors.white.withOpacity(0.5),
                       ),
-                    ],
-                  ),
-                ),
-                Wrap(
-                  alignment: WrapAlignment.center,
-                  spacing: 20.0,
-                  runSpacing: 20.0,
-                  children: [
-                    GestureDetector(
-                      onTap: () => _onJoin('roomA'),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(10.0),
-                        child: Container(
-                          width: 160.0,
-                          height: 160.0,
-                          color: Colors.white.withOpacity(0.07),
-                          child: const Align(
-                            alignment: Alignment(-0.70, -0.70),
-                            child: Text('Room A'),
-                          ),
-                        ),
-                      ),
                     ),
-                    GestureDetector(
-                      onTap: () => _onJoin('roomB'),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(10.0),
-                        child: Container(
-                          width: 160.0,
-                          height: 160.0,
-                          color: Colors.white.withOpacity(0.07),
-                          child: const Align(
-                            alignment: Alignment(-0.70, -0.70),
-                            child: Text('Room B'),
-                          ),
-                        ),
-                      ),
-                    ),
-                    GestureDetector(
-                      onTap: () => _onJoin(_getRandomString(10)),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(10.0),
-                        child: Container(
-                          width: 160.0,
-                          height: 160.0,
-                          color: Colors.white.withOpacity(0.07),
-                          child: const Align(
-                            alignment: Alignment(-0.70, -0.70),
-                            child: Text('Create'),
-                          ),
-                        ),
-                      ),
-                    ),
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(10.0),
-                      child: Container(
-                        width: 160.0,
-                        height: 160.0,
-                        color: Colors.transparent,
-                      ),
+                    Icon(
+                      CupertinoIcons.right_chevron,
+                      color: Colors.white.withOpacity(0.5),
                     ),
                   ],
                 ),
-              ],
-            ),
+              ),
+              Wrap(
+                alignment: WrapAlignment.center,
+                spacing: 20.0,
+                runSpacing: 20.0,
+                children: [
+                  GestureDetector(
+                    onTap: () => _onJoin('roomA'),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(20.0),
+                      child: Container(
+                        width: 160.0,
+                        height: 160.0,
+                        color: Colors.white.withOpacity(0.07),
+                        child: Align(
+                          alignment: const Alignment(-0.70, -0.70),
+                          child: Text(
+                            'Room A',
+                            style: TextStyle(
+                              color: Colors.white.withOpacity(0.5),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  GestureDetector(
+                    onTap: () => _onJoin('roomB'),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(20.0),
+                      child: Container(
+                        width: 160.0,
+                        height: 160.0,
+                        color: Colors.white.withOpacity(0.07),
+                        child: Align(
+                          alignment: const Alignment(-0.70, -0.70),
+                          child: Text(
+                            'Room B',
+                            style: TextStyle(
+                              color: Colors.white.withOpacity(0.5),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  GestureDetector(
+                    onTap: authenticationModel.isSignedIn
+                        ? () => _onJoin(_getRandomString(10))
+                        : null,
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(20.0),
+                      child: Container(
+                        width: 160.0,
+                        height: 160.0,
+                        color: Colors.white.withOpacity(0.07),
+                        child: Align(
+                          alignment: const Alignment(-0.70, -0.70),
+                          child: authenticationModel.isSignedIn
+                              ? Text(
+                                  'Create',
+                                  style: TextStyle(
+                                    color: Colors.white.withOpacity(0.5),
+                                  ),
+                                )
+                              : Text(
+                                  'Sign In first',
+                                  style: TextStyle(
+                                    color: Colors.white.withOpacity(0.5),
+                                  ),
+                                ),
+                        ),
+                      ),
+                    ),
+                  ),
+                  ClipRRect(
+                    borderRadius: BorderRadius.circular(20.0),
+                    child: Container(
+                      width: 160.0,
+                      height: 160.0,
+                      color: Colors.transparent,
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
         ),
       ),
