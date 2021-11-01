@@ -566,6 +566,8 @@ PODS:
   - "permission_handler (5.1.0+2)":
     - Flutter
   - PromisesObjC (2.0.0)
+  - sensors (0.0.1):
+    - Flutter
   - share_plus (0.0.1):
     - Flutter
   - url_launcher (0.0.1):
@@ -584,6 +586,7 @@ DEPENDENCIES:
   - Flutter (from `Flutter`)
   - path_provider (from `.symlinks/plugins/path_provider/ios`)
   - permission_handler (from `.symlinks/plugins/permission_handler/ios`)
+  - sensors (from `.symlinks/plugins/sensors/ios`)
   - share_plus (from `.symlinks/plugins/share_plus/ios`)
   - url_launcher (from `.symlinks/plugins/url_launcher/ios`)
 
@@ -640,6 +643,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/path_provider/ios"
   permission_handler:
     :path: ".symlinks/plugins/permission_handler/ios"
+  sensors:
+    :path: ".symlinks/plugins/sensors/ios"
   share_plus:
     :path: ".symlinks/plugins/share_plus/ios"
   url_launcher:
@@ -683,6 +688,7 @@ SPEC CHECKSUMS:
   path_provider: d1e9807085df1f9cc9318206cd649dc0b76be3de
   permission_handler: ccb20a9fad0ee9b1314a52b70b76b473c5f8dab0
   PromisesObjC: 68159ce6952d93e17b2dfe273b8c40907db5ba58
+  sensors: 84eb7a30e47a649e4172b71d6e81be614c280336
   share_plus: 056a1e8ac890df3e33cb503afffaf1e9b4fbae68
   url_launcher: b6e016d912f04be9f5bf6e8e82dc599b7ba59649
 

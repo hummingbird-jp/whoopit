@@ -7,7 +7,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:whoopit/constants.dart';
-import 'package:whoopit/pages/tabs_page.dart';
+import 'package:whoopit/pages/home_page.dart';
 
 Future<void> main() async {
   runZonedGuarded<Future<void>>(() async {
@@ -31,7 +31,7 @@ class Whoopit extends StatelessWidget {
     return CupertinoApp(
       title: 'Whoopit',
       theme: kThemeData,
-      home: const TabsPage(),
+      home: const HomePage(),
       localizationsDelegates: const [
         DefaultMaterialLocalizations.delegate,
         DefaultCupertinoLocalizations.delegate,
