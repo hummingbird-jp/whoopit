@@ -11,13 +11,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:rounded_loading_button/rounded_loading_button.dart';
+import 'package:shake/shake.dart';
 import 'package:share_plus/share_plus.dart';
-
-const String appId = '8d98fb1cbd094508bff710b6a2d199ef';
 
 late String token;
 late String channelName;
-late RtcEngine rtcEngine;
 
 class MeetingPage extends StatefulWidget {
   const MeetingPage({Key? key}) : super(key: key);
@@ -27,17 +25,40 @@ class MeetingPage extends StatefulWidget {
 }
 
 class _MeetingPageState extends State<MeetingPage> {
+  final String appId = '8d98fb1cbd094508bff710b6a2d199ef';
+  final RoundedLoadingButtonController _muteButtonController =
+      RoundedLoadingButtonController();
+
+  late RtcEngine rtcEngine;
+  late ShakeDetector _shakeDetector;
+
   bool _joined = false;
   bool get joined => _joined;
   int _remoteUid = 0;
   bool _muted = false;
-  final RoundedLoadingButtonController _muteButtonController =
-      RoundedLoadingButtonController();
+  bool _isShaking = false;
 
   @override
   void initState() {
     super.initState();
     _initAgora();
+    _shakeDetector = ShakeDetector.autoStart(onPhoneShake: _onShake);
+  }
+
+  void _onShake() {
+    log('_shakeDetector.count: ${_shakeDetector.mShakeCount}');
+
+    if (_shakeDetector.mShakeCount > 3) {
+      setState(() {
+        _isShaking = true;
+      });
+    }
+
+    Future.delayed(const Duration(milliseconds: 5000), () {
+      setState(() {
+        _isShaking = false;
+      });
+    });
   }
 
   Future<void> _initAgora() async {
@@ -80,9 +101,12 @@ class _MeetingPageState extends State<MeetingPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: CupertinoTheme.of(context).scaffoldBackgroundColor,
-      child: SafeArea(
+    return Scaffold(
+      appBar: const CupertinoNavigationBar(
+        automaticallyImplyLeading: true,
+      ),
+      backgroundColor: CupertinoTheme.of(context).scaffoldBackgroundColor,
+      body: SafeArea(
         child: Stack(
           children: [
             ListView(
@@ -95,6 +119,13 @@ class _MeetingPageState extends State<MeetingPage> {
                       padding: const EdgeInsets.symmetric(vertical: 10.0),
                       child: Column(
                         children: [
+                          Visibility(
+                            visible: _isShaking,
+                            child: const Text(
+                              '🍺',
+                              style: TextStyle(fontSize: 24.0),
+                            ),
+                          ),
                           ClipRRect(
                             borderRadius: BorderRadius.circular(50),
                             child: Container(
