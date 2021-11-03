@@ -405,22 +405,23 @@ class _RoomPageState extends State<RoomPage> {
   }
 
   Future<void> _leave() async {
-    await _rtcEngine.leaveChannel();
+    Future.wait([
+      _rtcEngine.leaveChannel(),
+      _roomRef.update({
+        'participants': FieldValue.arrayRemove(
+          <Map>[
+            <String, dynamic>{
+              'displayName': _myName,
+              'uid': _account,
+              'isShaking': _isShaking,
+            }
+          ],
+        ),
+      }),
+    ]);
+
     log('Left the channel.');
     Navigator.pop(context);
-
-    // Remove myself from the list of participants
-    _roomRef.update({
-      'participants': FieldValue.arrayRemove(
-        <Map>[
-          <String, dynamic>{
-            'displayName': _myName,
-            'uid': _account,
-            'isShaking': _isShaking,
-          }
-        ],
-      ),
-    });
   }
 
   Future<String> _fetchTokenWithAccount() async {
