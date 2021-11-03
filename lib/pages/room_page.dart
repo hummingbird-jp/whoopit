@@ -4,6 +4,7 @@ import 'dart:developer';
 import 'package:agora_rtc_engine/rtc_engine.dart';
 import 'package:agora_rtc_engine/rtc_local_view.dart' as rtc_local_view;
 import 'package:agora_rtc_engine/rtc_remote_view.dart' as rtc_remote_view;
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
@@ -18,19 +19,23 @@ import 'package:vibration/vibration.dart';
 late String token;
 late String channelName;
 
-class MeetingPage extends StatefulWidget {
-  const MeetingPage({Key? key}) : super(key: key);
+class RoomPage extends StatefulWidget {
+  const RoomPage({Key? key}) : super(key: key);
 
   @override
-  State<MeetingPage> createState() => _MeetingPageState();
+  State<RoomPage> createState() => _RoomPageState();
 }
 
-class _MeetingPageState extends State<MeetingPage> {
+class _RoomPageState extends State<RoomPage> {
   final String appId = '8d98fb1cbd094508bff710b6a2d199ef';
   final RoundedLoadingButtonController _muteButtonController =
       RoundedLoadingButtonController();
+  final DocumentReference _roomRef =
+      FirebaseFirestore.instance.collection('rooms').doc(channelName);
+  final String _account = FirebaseAuth.instance.currentUser!.uid;
+  final String? _myName = FirebaseAuth.instance.currentUser!.displayName;
 
-  late RtcEngine rtcEngine;
+  late RtcEngine _rtcEngine;
   late ShakeDetector _shakeDetector;
 
   bool _joined = false;
@@ -56,12 +61,64 @@ class _MeetingPageState extends State<MeetingPage> {
         _isShaking = true;
       });
 
+      // Temporary remove myself from the list
+      await _roomRef.update({
+        'participants': FieldValue.arrayRemove(
+          <Map>[
+            <String, dynamic>{
+              'displayName': _myName,
+              'uid': _account,
+              'isShaking': false,
+            }
+          ],
+        ),
+      });
+
+      // Add myself to the list again with 'isShaking' set to true
+      await _roomRef.update({
+        'participants': FieldValue.arrayUnion(
+          <Map>[
+            <String, dynamic>{
+              'displayName': _myName,
+              'uid': _account,
+              'isShaking': true,
+            }
+          ],
+        ),
+      });
+
       Vibration.vibrate();
     }
 
-    Future.delayed(const Duration(milliseconds: 8000), () {
+    Future.delayed(const Duration(milliseconds: 8000), () async {
       setState(() {
         _isShaking = false;
+      });
+
+      // Temporary remove myself from the list
+      await _roomRef.update({
+        'participants': FieldValue.arrayRemove(
+          <Map>[
+            <String, dynamic>{
+              'displayName': _myName,
+              'uid': _account,
+              'isShaking': true,
+            }
+          ],
+        ),
+      });
+
+      // Add myself to the list again with 'isShaking' set to false
+      await _roomRef.update({
+        'participants': FieldValue.arrayUnion(
+          <Map>[
+            <String, dynamic>{
+              'displayName': _myName,
+              'uid': _account,
+              'isShaking': false,
+            }
+          ],
+        ),
       });
     });
   }
@@ -71,14 +128,14 @@ class _MeetingPageState extends State<MeetingPage> {
 
     RtcEngineContext _rtcEngineContext = RtcEngineContext(appId);
 
-    rtcEngine = await RtcEngine.createWithContext(_rtcEngineContext);
+    _rtcEngine = await RtcEngine.createWithContext(_rtcEngineContext);
 
     // Just for hot-restart
     // TODO: Remove in production
-    rtcEngine.destroy();
-    rtcEngine = await RtcEngine.createWithContext(_rtcEngineContext);
+    _rtcEngine.destroy();
+    _rtcEngine = await RtcEngine.createWithContext(_rtcEngineContext);
 
-    rtcEngine.setEventHandler(
+    _rtcEngine.setEventHandler(
       RtcEngineEventHandler(
         joinChannelSuccess: (channel, uid, elapsed) {
           log('Succeeded to join a channel: channel: $channel, uid: $uid');
@@ -208,11 +265,7 @@ class _MeetingPageState extends State<MeetingPage> {
                         ),
                       ),
                       child: const Text('👋 Leave'),
-                      onPressed: () async {
-                        await rtcEngine.leaveChannel();
-                        log('Left the channel.');
-                        Navigator.pop(context);
-                      },
+                      onPressed: _leave,
                     ),
                     ElevatedButton(
                       style: ButtonStyle(
@@ -271,7 +324,7 @@ class _MeetingPageState extends State<MeetingPage> {
                         ],
                       ),
                       onPressed: () async {
-                        await rtcEngine.muteLocalAudioStream(!_muted);
+                        await _rtcEngine.muteLocalAudioStream(!_muted);
                         setState(() {
                           _muted = !_muted;
                         });
@@ -309,12 +362,65 @@ class _MeetingPageState extends State<MeetingPage> {
       token = newToken;
     });
 
-    await rtcEngine.enableVideo();
+    await _rtcEngine.enableVideo();
+    await _rtcEngine.joinChannelWithUserAccount(token, channelName, _account);
 
-    final String account = FirebaseAuth.instance.currentUser!.uid;
-    await rtcEngine.joinChannelWithUserAccount(token, channelName, account);
+    _roomRef.get().then((docSnapshot) {
+      if (docSnapshot.exists) {
+        log('Room already exists. Updating existing doc on Firestore...');
+        // Add myself to the list of participants
+        _roomRef.update({
+          'participants': FieldValue.arrayUnion(
+            <Map>[
+              <String, dynamic>{
+                'displayName': _myName,
+                'uid': _account,
+                'isShaking': _isShaking,
+              }
+            ],
+          ),
+        });
+      } else {
+        log('Room doesn\'t exist. Creating new doc on Firestore...');
+        // Create new room on Firestore
+        _roomRef.set(<String, dynamic>{
+          'name': channelName,
+          'createdAt': DateTime.now().millisecondsSinceEpoch,
+          'owner': <String, dynamic>{
+            'displayName': _myName,
+            'uid': _account,
+          },
+          'participants': <Map>[
+            <String, dynamic>{
+              'displayName': _myName,
+              'uid': _account,
+              'isShaking': _isShaking,
+            },
+          ],
+        });
+      }
+    });
 
-    // recentMeetings に .add
+    log('Joined the room.');
+  }
+
+  Future<void> _leave() async {
+    await _rtcEngine.leaveChannel();
+    log('Left the channel.');
+    Navigator.pop(context);
+
+    // Remove myself from the list of participants
+    _roomRef.update({
+      'participants': FieldValue.arrayRemove(
+        <Map>[
+          <String, dynamic>{
+            'displayName': _myName,
+            'uid': _account,
+            'isShaking': _isShaking,
+          }
+        ],
+      ),
+    });
   }
 
   Future<String> _fetchTokenWithAccount() async {
