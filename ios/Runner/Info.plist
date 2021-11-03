@@ -28,6 +28,11 @@
 	<string>Need camera access to show your face 😉</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Need microphone access to talk with others 👋</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>audio</string>
+		<string>voip</string>
+	</array>
 	<key>UILaunchStoryboardName</key>
 	<string>LaunchScreen</string>
 	<key>UIMainStoryboardFile</key>
