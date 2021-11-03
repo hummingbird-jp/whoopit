@@ -2,7 +2,6 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:whoopit/models/authentication.dart';
-import 'package:whoopit/pages/home_page.dart';
 
 class SignupPage extends StatelessWidget {
   SignupPage({Key? key}) : super(key: key);
