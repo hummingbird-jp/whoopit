@@ -27,7 +27,6 @@ dependencies:
   rounded_loading_button: ^2.0.9
   shake: ^1.0.1
   share_plus: ^3.0.4
-  vibration: ^1.7.4-nullsafety.0
 
 dev_dependencies:
   flutter_test:
