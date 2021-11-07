@@ -9,7 +9,7 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:whoopit/models/authentication.dart';
 import 'package:whoopit/pages/signin_page.dart';
 
-import 'meeting_page.dart';
+import 'room_page.dart';
 
 class HomePage extends StatefulHookWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -233,12 +233,12 @@ class _TabsPageState extends State<HomePage> {
   }
 
   void _onJoin(String newChannelName) {
-    channelName = newChannelName;
-    log('channelName: $channelName');
+    roomName = newChannelName;
+    log('channelName: $roomName');
     Navigator.push<Widget>(
       context,
       MaterialPageRoute(
-        builder: (context) => const MeetingPage(),
+        builder: (context) => const RoomPage(),
       ),
     );
   }
