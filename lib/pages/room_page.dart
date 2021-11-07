@@ -70,211 +70,214 @@ class _RoomPageState extends State<RoomPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        automaticallyImplyLeading: true,
-        title: Text(roomName),
-      ),
-      backgroundColor: Theme.of(context).colorScheme.background,
-      body: SafeArea(
-        child: Stack(
-          children: [
-            StreamBuilder<QuerySnapshot>(
-              stream: _participantsStream,
-              builder: (context, snapshot) {
-                if (snapshot.hasError) {
-                  return const Text('Something went wrong');
-                }
+    return WillPopScope(
+      onWillPop: () async => false,
+      child: Scaffold(
+        appBar: AppBar(
+          automaticallyImplyLeading: false,
+          title: Text(roomName),
+        ),
+        backgroundColor: Theme.of(context).colorScheme.background,
+        body: SafeArea(
+          child: Stack(
+            children: [
+              StreamBuilder<QuerySnapshot>(
+                stream: _participantsStream,
+                builder: (context, snapshot) {
+                  if (snapshot.hasError) {
+                    return const Text('Something went wrong');
+                  }
 
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(
-                    child: CupertinoActivityIndicator(),
-                  );
-                }
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(
+                      child: CupertinoActivityIndicator(),
+                    );
+                  }
 
-                return Center(
-                  child: Wrap(
-                    alignment: WrapAlignment.spaceBetween,
-                    direction: Axis.horizontal,
-                    spacing: 20,
-                    runSpacing: 40,
-                    children: snapshot.data!.docs.map((doc) {
-                      final Map<String, dynamic> data =
-                          doc.data() as Map<String, dynamic>;
-                      final int agoraUid = data['agoraUid'] as int;
-                      final String? name = data['name'] as String;
-                      final bool isMe = agoraUid == _me.agoraUid;
-                      final bool isMuted = data['isMuted'] as bool;
-                      final bool isShaking = data['isShaking'] as bool;
-                      final bool isClapping = data['isClapping'] as bool;
+                  return Center(
+                    child: Wrap(
+                      alignment: WrapAlignment.spaceBetween,
+                      direction: Axis.horizontal,
+                      spacing: 20,
+                      runSpacing: 40,
+                      children: snapshot.data!.docs.map((doc) {
+                        final Map<String, dynamic> data =
+                            doc.data() as Map<String, dynamic>;
+                        final int agoraUid = data['agoraUid'] as int;
+                        final String? name = data['name'] as String;
+                        final bool isMe = agoraUid == _me.agoraUid;
+                        final bool isMuted = data['isMuted'] as bool;
+                        final bool isShaking = data['isShaking'] as bool;
+                        final bool isClapping = data['isClapping'] as bool;
 
-                      return Column(
-                        children: [
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(50),
-                            child: Container(
-                              color: Theme.of(context).colorScheme.primary,
-                              width: 100.0,
-                              height: 100.0,
-                              child: Stack(
-                                children: [
-                                  isMe
-                                      ? _renderLocalPreview()
-                                      : _renderRemotePreview(agoraUid),
-                                  Visibility(
-                                    visible: isMuted,
-                                    child: Container(
-                                      color: Theme.of(context)
-                                          .colorScheme
-                                          .primary
-                                          .withOpacity(0.8),
-                                      child: Center(
-                                        child: Icon(
-                                          CupertinoIcons.mic_off,
-                                          color: Theme.of(context)
-                                              .colorScheme
-                                              .secondary,
+                        return Column(
+                          children: [
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(50),
+                              child: Container(
+                                color: Theme.of(context).colorScheme.primary,
+                                width: 100.0,
+                                height: 100.0,
+                                child: Stack(
+                                  children: [
+                                    isMe
+                                        ? _renderLocalPreview()
+                                        : _renderRemotePreview(agoraUid),
+                                    Visibility(
+                                      visible: isMuted,
+                                      child: Container(
+                                        color: Theme.of(context)
+                                            .colorScheme
+                                            .primary
+                                            .withOpacity(0.8),
+                                        child: Center(
+                                          child: Icon(
+                                            CupertinoIcons.mic_off,
+                                            color: Theme.of(context)
+                                                .colorScheme
+                                                .secondary,
+                                          ),
                                         ),
                                       ),
                                     ),
-                                  ),
-                                  Visibility(
-                                    visible: isShaking,
-                                    child: const Center(
-                                      child: Text(
-                                        '🍺',
-                                        style: TextStyle(fontSize: 80.0),
+                                    Visibility(
+                                      visible: isShaking,
+                                      child: const Center(
+                                        child: Text(
+                                          '🍺',
+                                          style: TextStyle(fontSize: 80.0),
+                                        ),
                                       ),
                                     ),
-                                  ),
-                                  Visibility(
-                                    visible: isClapping,
-                                    child: const Center(
-                                      child: Text(
-                                        '👏',
-                                        style: TextStyle(fontSize: 80.0),
+                                    Visibility(
+                                      visible: isClapping,
+                                      child: const Center(
+                                        child: Text(
+                                          '👏',
+                                          style: TextStyle(fontSize: 80.0),
+                                        ),
                                       ),
-                                    ),
-                                  )
-                                ],
+                                    )
+                                  ],
+                                ),
+                              ),
+                            ),
+                            const SizedBox(height: 10),
+                            Text(name ?? 'Anonymous'),
+                          ],
+                        );
+                      }).toList(),
+                    ),
+                  );
+                },
+              ),
+              Align(
+                alignment: const Alignment(0.00, 0.60),
+                child: CupertinoButton.filled(
+                  child: const Text('Share to friends!'),
+                  onPressed: () {
+                    Clipboard.setData(ClipboardData(text: roomName));
+                    Share.share(roomName);
+                  },
+                ),
+              ),
+              Positioned(
+                bottom: 0,
+                child: SizedBox(
+                  width: MediaQuery.of(context).size.width,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      ElevatedButton(
+                        style: ButtonStyle(
+                          backgroundColor: MaterialStateProperty.all<Color>(
+                            Theme.of(context).colorScheme.primary,
+                          ),
+                          shape: MaterialStateProperty.all(
+                            RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(20),
+                              side: BorderSide(
+                                color: Theme.of(context).colorScheme.primary,
                               ),
                             ),
                           ),
-                          const SizedBox(height: 10),
-                          Text(name ?? 'Anonymous'),
-                        ],
-                      );
-                    }).toList(),
-                  ),
-                );
-              },
-            ),
-            Align(
-              alignment: const Alignment(0.00, 0.60),
-              child: CupertinoButton.filled(
-                child: const Text('Share to friends!'),
-                onPressed: () {
-                  Clipboard.setData(ClipboardData(text: roomName));
-                  Share.share(roomName);
-                },
-              ),
-            ),
-            Positioned(
-              bottom: 0,
-              child: SizedBox(
-                width: MediaQuery.of(context).size.width,
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    ElevatedButton(
-                      style: ButtonStyle(
-                        backgroundColor: MaterialStateProperty.all<Color>(
-                          Theme.of(context).colorScheme.primary,
                         ),
-                        shape: MaterialStateProperty.all(
-                          RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(20),
-                            side: BorderSide(
-                              color: Theme.of(context).colorScheme.primary,
+                        child: const Text('👋 Leave'),
+                        onPressed: _onLeave,
+                      ),
+                      ElevatedButton(
+                        style: ButtonStyle(
+                          backgroundColor: MaterialStateProperty.all<Color>(
+                            Theme.of(context).colorScheme.primary,
+                          ),
+                          shape: MaterialStateProperty.all(
+                            RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(30),
+                              side: BorderSide(
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
                             ),
                           ),
                         ),
+                        child: const Text('👏'),
+                        onPressed: _isMeClapping ? null : _onClap,
                       ),
-                      child: const Text('👋 Leave'),
-                      onPressed: _onLeave,
-                    ),
-                    ElevatedButton(
-                      style: ButtonStyle(
-                        backgroundColor: MaterialStateProperty.all<Color>(
-                          Theme.of(context).colorScheme.primary,
-                        ),
-                        shape: MaterialStateProperty.all(
-                          RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(30),
-                            side: BorderSide(
-                              color: Theme.of(context).colorScheme.primary,
-                            ),
-                          ),
-                        ),
-                      ),
-                      child: const Text('👏'),
-                      onPressed: _isMeClapping ? null : _onClap,
-                    ),
-                    RoundedLoadingButton(
-                      controller: _muteButtonController,
-                      height: 36,
-                      width: 72,
-                      loaderStrokeWidth: 1.0,
-                      animateOnTap: true,
-                      resetDuration: const Duration(milliseconds: 1500),
-                      resetAfterDuration: true,
-                      successIcon: CupertinoIcons.mic_fill,
-                      failedIcon: CupertinoIcons.mic_off,
-                      successColor: Theme.of(context).colorScheme.primary,
-                      errorColor: const Color(0xFFFF2D34),
-                      color: _isMeMuted
-                          ? const Color(0xFFFF2D34)
-                          : Theme.of(context).colorScheme.secondary,
-                      child: Row(
-                        children: [
-                          Icon(
-                            _isMeMuted
-                                ? CupertinoIcons.mic_off
-                                : CupertinoIcons.mic_fill,
-                            size: 12,
-                            color: _isMeMuted
-                                ? Theme.of(context).colorScheme.secondary
-                                : Theme.of(context).colorScheme.primary,
-                          ),
-                          Text(
-                            _isMeMuted ? 'Muted' : 'Unmuted',
-                            style: TextStyle(
+                      RoundedLoadingButton(
+                        controller: _muteButtonController,
+                        height: 36,
+                        width: 72,
+                        loaderStrokeWidth: 1.0,
+                        animateOnTap: true,
+                        resetDuration: const Duration(milliseconds: 1500),
+                        resetAfterDuration: true,
+                        successIcon: CupertinoIcons.mic_fill,
+                        failedIcon: CupertinoIcons.mic_off,
+                        successColor: Theme.of(context).colorScheme.primary,
+                        errorColor: const Color(0xFFFF2D34),
+                        color: _isMeMuted
+                            ? const Color(0xFFFF2D34)
+                            : Theme.of(context).colorScheme.secondary,
+                        child: Row(
+                          children: [
+                            Icon(
+                              _isMeMuted
+                                  ? CupertinoIcons.mic_off
+                                  : CupertinoIcons.mic_fill,
+                              size: 12,
                               color: _isMeMuted
                                   ? Theme.of(context).colorScheme.secondary
                                   : Theme.of(context).colorScheme.primary,
                             ),
-                          ),
-                        ],
+                            Text(
+                              _isMeMuted ? 'Muted' : 'Unmuted',
+                              style: TextStyle(
+                                color: _isMeMuted
+                                    ? Theme.of(context).colorScheme.secondary
+                                    : Theme.of(context).colorScheme.primary,
+                              ),
+                            ),
+                          ],
+                        ),
+                        onPressed: _onMute,
                       ),
-                      onPressed: _onMute,
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
-            ),
-            Visibility(
-              visible: _isMeJoinInProgress || _isMeLeaveInProgress,
-              child: Opacity(
-                opacity: 0.8,
-                child: Container(
-                  width: double.infinity,
-                  height: double.infinity,
-                  color: Theme.of(context).colorScheme.background,
-                  child: const Center(child: CupertinoActivityIndicator()),
+              Visibility(
+                visible: _isMeJoinInProgress || _isMeLeaveInProgress,
+                child: Opacity(
+                  opacity: 0.8,
+                  child: Container(
+                    width: double.infinity,
+                    height: double.infinity,
+                    color: Theme.of(context).colorScheme.background,
+                    child: const Center(child: CupertinoActivityIndicator()),
+                  ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
