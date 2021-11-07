@@ -14,7 +14,6 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:rounded_loading_button/rounded_loading_button.dart';
 import 'package:shake/shake.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:vibration/vibration.dart';
 
 late String token;
 late String roomName;
@@ -54,10 +53,13 @@ class _RoomPageState extends State<RoomPage> {
   late RtcEngine _rtcEngine;
   late ShakeDetector _shakeDetector;
 
-  bool _joined = false;
-  bool get joined => _joined;
-  bool _muted = true;
-  bool _isShaking = false;
+  bool _isMeJoined = false;
+  bool _isMeMuted = true;
+  bool _isMeShaking = false;
+  bool _isMeClapping = false;
+
+  bool _isMeJoinInProgress = false;
+  bool _isMeLeaveInProgress = false;
 
   @override
   void initState() {
@@ -104,6 +106,7 @@ class _RoomPageState extends State<RoomPage> {
                       final bool isMe = agoraUid == _me.agoraUid;
                       final bool isMuted = data['isMuted'] as bool;
                       final bool isShaking = data['isShaking'] as bool;
+                      final bool isClapping = data['isClapping'] as bool;
 
                       return Column(
                         children: [
@@ -144,6 +147,15 @@ class _RoomPageState extends State<RoomPage> {
                                       ),
                                     ),
                                   ),
+                                  Visibility(
+                                    visible: isClapping,
+                                    child: const Center(
+                                      child: Text(
+                                        '👏',
+                                        style: TextStyle(fontSize: 80.0),
+                                      ),
+                                    ),
+                                  )
                                 ],
                               ),
                             ),
@@ -189,7 +201,7 @@ class _RoomPageState extends State<RoomPage> {
                         ),
                       ),
                       child: const Text('👋 Leave'),
-                      onPressed: _leave,
+                      onPressed: _onLeave,
                     ),
                     ElevatedButton(
                       style: ButtonStyle(
@@ -206,10 +218,7 @@ class _RoomPageState extends State<RoomPage> {
                         ),
                       ),
                       child: const Text('👏'),
-                      onPressed: null,
-                      //onPressed: () {
-                      // TODO: Implement functionallity
-                      //},
+                      onPressed: _isMeClapping ? null : _onClap,
                     ),
                     RoundedLoadingButton(
                       controller: _muteButtonController,
@@ -223,46 +232,45 @@ class _RoomPageState extends State<RoomPage> {
                       failedIcon: CupertinoIcons.mic_off,
                       successColor: Theme.of(context).colorScheme.primary,
                       errorColor: const Color(0xFFFF2D34),
-                      color: _muted
+                      color: _isMeMuted
                           ? const Color(0xFFFF2D34)
                           : Theme.of(context).colorScheme.secondary,
                       child: Row(
                         children: [
                           Icon(
-                            _muted
+                            _isMeMuted
                                 ? CupertinoIcons.mic_off
                                 : CupertinoIcons.mic_fill,
                             size: 12,
-                            color: _muted
+                            color: _isMeMuted
                                 ? Theme.of(context).colorScheme.secondary
                                 : Theme.of(context).colorScheme.primary,
                           ),
                           Text(
-                            _muted ? 'Muted' : 'Unmuted',
+                            _isMeMuted ? 'Muted' : 'Unmuted',
                             style: TextStyle(
-                              color: _muted
+                              color: _isMeMuted
                                   ? Theme.of(context).colorScheme.secondary
                                   : Theme.of(context).colorScheme.primary,
                             ),
                           ),
                         ],
                       ),
-                      onPressed: () async {
-                        _myParticipantRef.update({
-                          'isMuted': !_muted,
-                        });
-                        await _rtcEngine.muteLocalAudioStream(!_muted);
-                        setState(() {
-                          _muted = !_muted;
-                        });
-                        Timer(const Duration(milliseconds: 200), () {
-                          _muted
-                              ? _muteButtonController.error()
-                              : _muteButtonController.success();
-                        });
-                      },
+                      onPressed: _onMute,
                     ),
                   ],
+                ),
+              ),
+            ),
+            Visibility(
+              visible: _isMeJoinInProgress || _isMeLeaveInProgress,
+              child: Expanded(
+                child: Opacity(
+                  opacity: 0.8,
+                  child: Container(
+                    color: Theme.of(context).colorScheme.background,
+                    child: const Center(child: CupertinoActivityIndicator()),
+                  ),
                 ),
               ),
             ),
@@ -270,27 +278,6 @@ class _RoomPageState extends State<RoomPage> {
         ),
       ),
     );
-  }
-
-  Future<void> _onShake() async {
-    log('_shakeDetector.count: ${_shakeDetector.mShakeCount}');
-
-    if (_isShaking == true) {
-      return;
-    } else if (_shakeDetector.mShakeCount == 3) {
-      setState(() {
-        _isShaking = true;
-      });
-      _myParticipantRef.update({'isShaking': true});
-      Vibration.vibrate();
-    }
-
-    Future.delayed(const Duration(milliseconds: 8000), () async {
-      setState(() {
-        _isShaking = false;
-      });
-      _myParticipantRef.update({'isShaking': false});
-    });
   }
 
   Future<void> _initAgora() async {
@@ -309,7 +296,7 @@ class _RoomPageState extends State<RoomPage> {
         joinChannelSuccess: (channel, uid, elapsed) {
           log('Joined a room: $channel');
           setState(() {
-            _joined = true;
+            _isMeJoined = true;
           });
         },
         userJoined: (uid, elapsed) {
@@ -330,10 +317,70 @@ class _RoomPageState extends State<RoomPage> {
       ),
     );
 
-    _join();
+    _onJoin();
   }
 
-  Future<void> _join() async {
+  Future<void> _onMute() async {
+    _myParticipantRef.update({
+      'isMuted': !_isMeMuted,
+    });
+
+    await _rtcEngine.muteLocalAudioStream(!_isMeMuted);
+    HapticFeedback.lightImpact();
+
+    setState(() {
+      _isMeMuted = !_isMeMuted;
+    });
+
+    Timer(const Duration(milliseconds: 200), () {
+      _isMeMuted
+          ? _muteButtonController.error()
+          : _muteButtonController.success();
+    });
+  }
+
+  Future<void> _onShake() async {
+    log('_shakeDetector.count: ${_shakeDetector.mShakeCount}');
+
+    if (_isMeShaking == true) {
+      return;
+    } else if (_shakeDetector.mShakeCount == 3) {
+      setState(() {
+        _isMeShaking = true;
+      });
+
+      _myParticipantRef.update({'isShaking': true});
+      HapticFeedback.lightImpact();
+    }
+
+    Future.delayed(const Duration(milliseconds: 8000), () async {
+      setState(() {
+        _isMeShaking = false;
+      });
+      _myParticipantRef.update({'isShaking': false});
+    });
+  }
+
+  Future<void> _onClap() async {
+    setState(() {
+      _isMeClapping = true;
+    });
+
+    HapticFeedback.lightImpact();
+
+    Future.delayed(const Duration(milliseconds: 200), () async {
+      setState(() {
+        _isMeClapping = false;
+      });
+      _myParticipantRef.update({'isClapping': false});
+    });
+  }
+
+  Future<void> _onJoin() async {
+    setState(() {
+      _isMeJoinInProgress = true;
+    });
+
     final String newToken = await _fetchTokenWithUid();
 
     // Using 'newToken' because cannot use async/await inside of setState
@@ -356,24 +403,38 @@ class _RoomPageState extends State<RoomPage> {
       'name': _me.name,
       'isMuted': _me.isMuted,
       'isShaking': false,
+      'isClapping': false,
+    });
+
+    setState(() {
+      _isMeJoinInProgress = false;
     });
   }
 
-  Future<void> _leave() async {
+  Future<void> _onLeave() async {
+    setState(() {
+      _isMeLeaveInProgress = true;
+    });
+
     _myParticipantRef.delete();
 
+    HapticFeedback.lightImpact();
+
     try {
-      Future.wait([
-        _rtcEngine.leaveChannel(),
-        _rtcEngine.disableVideo(),
-        _rtcEngine.destroy(),
-      ]);
+      await _rtcEngine.leaveChannel();
+      await _rtcEngine.disableVideo();
+      await _rtcEngine.destroy();
     } on Exception catch (e) {
       log('Error leaving room: $e');
     }
 
-    log('Left the room.');
     Navigator.pop(context);
+
+    setState(() {
+      _isMeLeaveInProgress = false;
+    });
+
+    log('Left the room.');
   }
 
   Future<String> _fetchTokenWithUid() async {
@@ -387,7 +448,7 @@ class _RoomPageState extends State<RoomPage> {
   }
 
   Widget _renderLocalPreview() {
-    if (_joined) {
+    if (_isMeJoined) {
       return rtc_local_view.SurfaceView();
     } else {
       return const CupertinoActivityIndicator();
