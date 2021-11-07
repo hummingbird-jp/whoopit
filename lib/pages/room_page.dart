@@ -35,6 +35,7 @@ class _RoomPageState extends State<RoomPage> {
     name: FirebaseAuth.instance.currentUser!.displayName ?? '',
     firebaseUid: FirebaseAuth.instance.currentUser!.uid,
     isShaking: false,
+    isMuted: true,
   );
 
   final CollectionReference _participantsCollection = FirebaseFirestore.instance
@@ -55,7 +56,7 @@ class _RoomPageState extends State<RoomPage> {
 
   bool _joined = false;
   bool get joined => _joined;
-  bool _muted = false;
+  bool _muted = true;
   bool _isShaking = false;
 
   @override
@@ -100,6 +101,8 @@ class _RoomPageState extends State<RoomPage> {
                           doc.data() as Map<String, dynamic>;
                       final int agoraUid = data['agoraUid'] as int;
                       final String? name = data['name'] as String;
+                      final bool isMe = agoraUid == _me.agoraUid;
+                      final bool isMuted = data['isMuted'] as bool;
                       final bool isShaking = data['isShaking'] as bool;
 
                       return Column(
@@ -110,20 +113,43 @@ class _RoomPageState extends State<RoomPage> {
                               color: Theme.of(context).colorScheme.primary,
                               width: 100.0,
                               height: 100.0,
-                              child: agoraUid == _me.agoraUid
-                                  ? _renderLocalPreview()
-                                  : _renderRemotePreview(agoraUid),
+                              child: Stack(
+                                children: [
+                                  isMe
+                                      ? _renderLocalPreview()
+                                      : _renderRemotePreview(agoraUid),
+                                  Visibility(
+                                    visible: isMuted,
+                                    child: Container(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .primary
+                                          .withOpacity(0.8),
+                                      child: Center(
+                                        child: Icon(
+                                          CupertinoIcons.mic_off,
+                                          color: Theme.of(context)
+                                              .colorScheme
+                                              .secondary,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  Visibility(
+                                    visible: isShaking,
+                                    child: const Center(
+                                      child: Text(
+                                        '🍺',
+                                        style: TextStyle(fontSize: 80.0),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
                             ),
                           ),
                           const SizedBox(height: 10),
-                          Text(
-                            name ?? 'Anonymous',
-                            style: TextStyle(
-                              color: isShaking
-                                  ? Theme.of(context).colorScheme.error
-                                  : Theme.of(context).colorScheme.onPrimary,
-                            ),
-                          ),
+                          Text(name ?? 'Anonymous'),
                         ],
                       );
                     }).toList(),
@@ -222,6 +248,9 @@ class _RoomPageState extends State<RoomPage> {
                         ],
                       ),
                       onPressed: () async {
+                        _myParticipantRef.update({
+                          'isMuted': !_muted,
+                        });
                         await _rtcEngine.muteLocalAudioStream(!_muted);
                         setState(() {
                           _muted = !_muted;
@@ -234,15 +263,6 @@ class _RoomPageState extends State<RoomPage> {
                       },
                     ),
                   ],
-                ),
-              ),
-            ),
-            Visibility(
-              visible: _isShaking,
-              child: const Center(
-                child: Text(
-                  '🍺',
-                  style: TextStyle(fontSize: 160.0),
                 ),
               ),
             ),
@@ -334,6 +354,7 @@ class _RoomPageState extends State<RoomPage> {
       'firebaseUid': _me.firebaseUid,
       'agoraUid': _me.agoraUid,
       'name': _me.name,
+      'isMuted': _me.isMuted,
       'isShaking': false,
     });
   }
@@ -367,23 +388,7 @@ class _RoomPageState extends State<RoomPage> {
 
   Widget _renderLocalPreview() {
     if (_joined) {
-      return Stack(
-        children: [
-          rtc_local_view.SurfaceView(),
-          Visibility(
-            visible: _muted,
-            child: Container(
-              color: Theme.of(context).colorScheme.primary.withOpacity(0.8),
-              child: Center(
-                child: Icon(
-                  CupertinoIcons.mic_off,
-                  color: Theme.of(context).colorScheme.secondary,
-                ),
-              ),
-            ),
-          ),
-        ],
-      );
+      return rtc_local_view.SurfaceView();
     } else {
       return const CupertinoActivityIndicator();
     }
@@ -401,12 +406,14 @@ class Participant {
   final String firebaseUid;
   final int agoraUid;
   final String name;
+  final bool isMuted;
   final bool isShaking;
 
   Participant({
     required this.firebaseUid,
     required this.agoraUid,
     required this.name,
+    required this.isMuted,
     required this.isShaking,
   });
 }
