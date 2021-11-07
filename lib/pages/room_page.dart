@@ -264,13 +264,13 @@ class _RoomPageState extends State<RoomPage> {
             ),
             Visibility(
               visible: _isMeJoinInProgress || _isMeLeaveInProgress,
-              child: Expanded(
-                child: Opacity(
-                  opacity: 0.8,
-                  child: Container(
-                    color: Theme.of(context).colorScheme.background,
-                    child: const Center(child: CupertinoActivityIndicator()),
-                  ),
+              child: Opacity(
+                opacity: 0.8,
+                child: Container(
+                  width: double.infinity,
+                  height: double.infinity,
+                  color: Theme.of(context).colorScheme.background,
+                  child: const Center(child: CupertinoActivityIndicator()),
                 ),
               ),
             ),
@@ -365,6 +365,7 @@ class _RoomPageState extends State<RoomPage> {
     setState(() {
       _isMeClapping = true;
     });
+    _myParticipantRef.update({'isClapping': true});
 
     HapticFeedback.lightImpact();
 
@@ -397,7 +398,9 @@ class _RoomPageState extends State<RoomPage> {
       log('Failed to join a room: $e');
     }
 
-    _myParticipantRef = await _participantsCollection.add({
+    _myParticipantRef = _participantsCollection.doc(_me.firebaseUid);
+
+    await _participantsCollection.doc(_me.firebaseUid).set({
       'firebaseUid': _me.firebaseUid,
       'agoraUid': _me.agoraUid,
       'name': _me.name,
