@@ -17,7 +17,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:vibration/vibration.dart';
 
 late String token;
-late String channelName;
+late String roomName;
 
 class RoomPage extends StatefulWidget {
   const RoomPage({Key? key}) : super(key: key);
@@ -30,17 +30,31 @@ class _RoomPageState extends State<RoomPage> {
   final String appId = '8d98fb1cbd094508bff710b6a2d199ef';
   final RoundedLoadingButtonController _muteButtonController =
       RoundedLoadingButtonController();
-  final DocumentReference _roomRef =
-      FirebaseFirestore.instance.collection('rooms').doc(channelName);
-  final String _account = FirebaseAuth.instance.currentUser!.uid;
-  final String? _myName = FirebaseAuth.instance.currentUser!.displayName;
+  final Participant _me = Participant(
+    agoraUid: FirebaseAuth.instance.currentUser!.uid.hashCode,
+    name: FirebaseAuth.instance.currentUser!.displayName ?? '',
+    firebaseUid: FirebaseAuth.instance.currentUser!.uid,
+    isShaking: false,
+  );
+
+  final CollectionReference _participantsCollection = FirebaseFirestore.instance
+      .collection('rooms')
+      .doc(roomName)
+      .collection('participants');
+  // Will be initialized after joining the channel
+  final List<int> _remoteAgoraUids = [];
+  late final DocumentReference _myParticipantRef;
+  final Stream<QuerySnapshot> _participantsStream = FirebaseFirestore.instance
+      .collection('rooms')
+      .doc(roomName)
+      .collection('participants')
+      .snapshots();
 
   late RtcEngine _rtcEngine;
   late ShakeDetector _shakeDetector;
 
   bool _joined = false;
   bool get joined => _joined;
-  int _remoteUid = 0;
   bool _muted = false;
   bool _isShaking = false;
 
@@ -51,195 +65,79 @@ class _RoomPageState extends State<RoomPage> {
     _shakeDetector = ShakeDetector.autoStart(onPhoneShake: _onShake);
   }
 
-  Future<void> _onShake() async {
-    log('_shakeDetector.count: ${_shakeDetector.mShakeCount}');
-
-    if (_isShaking == true) {
-      return;
-    } else if (_shakeDetector.mShakeCount == 3) {
-      setState(() {
-        _isShaking = true;
-      });
-
-      // Temporary remove myself from the list
-      await _roomRef.update({
-        'participants': FieldValue.arrayRemove(
-          <Map>[
-            <String, dynamic>{
-              'displayName': _myName,
-              'uid': _account,
-              'isShaking': false,
-            }
-          ],
-        ),
-      });
-
-      // Add myself to the list again with 'isShaking' set to true
-      await _roomRef.update({
-        'participants': FieldValue.arrayUnion(
-          <Map>[
-            <String, dynamic>{
-              'displayName': _myName,
-              'uid': _account,
-              'isShaking': true,
-            }
-          ],
-        ),
-      });
-
-      Vibration.vibrate();
-    }
-
-    Future.delayed(const Duration(milliseconds: 8000), () async {
-      setState(() {
-        _isShaking = false;
-      });
-
-      // Temporary remove myself from the list
-      await _roomRef.update({
-        'participants': FieldValue.arrayRemove(
-          <Map>[
-            <String, dynamic>{
-              'displayName': _myName,
-              'uid': _account,
-              'isShaking': true,
-            }
-          ],
-        ),
-      });
-
-      // Add myself to the list again with 'isShaking' set to false
-      await _roomRef.update({
-        'participants': FieldValue.arrayUnion(
-          <Map>[
-            <String, dynamic>{
-              'displayName': _myName,
-              'uid': _account,
-              'isShaking': false,
-            }
-          ],
-        ),
-      });
-    });
-  }
-
-  Future<void> _initAgora() async {
-    await [Permission.camera, Permission.microphone].request();
-
-    RtcEngineContext _rtcEngineContext = RtcEngineContext(appId);
-
-    _rtcEngine = await RtcEngine.createWithContext(_rtcEngineContext);
-
-    // Just for hot-restart
-    // TODO: Remove in production
-    _rtcEngine.destroy();
-    _rtcEngine = await RtcEngine.createWithContext(_rtcEngineContext);
-
-    _rtcEngine.setEventHandler(
-      RtcEngineEventHandler(
-        joinChannelSuccess: (channel, uid, elapsed) {
-          log('Succeeded to join a channel: channel: $channel, uid: $uid');
-          setState(() {
-            _joined = true;
-          });
-        },
-        userJoined: (uid, elapsed) {
-          log('Remote user joined: $uid');
-          setState(() {
-            _remoteUid = uid;
-          });
-        },
-        userOffline: (uid, reason) {
-          log('userOffline: $uid, reason: $reason');
-          setState(() {
-            _remoteUid = 0;
-          });
-        },
-      ),
-    );
-
-    _join();
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         automaticallyImplyLeading: true,
-        title: Text(channelName),
+        title: Text(roomName),
       ),
       backgroundColor: Theme.of(context).colorScheme.background,
       body: SafeArea(
         child: Stack(
           children: [
-            ListView(
-              children: [
-                Wrap(
-                  alignment: WrapAlignment.spaceAround,
-                  direction: Axis.horizontal,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 10.0),
-                      child: Column(
-                        children: [
-                          Hero(
-                            tag: 'profile',
-                            child: ClipRRect(
-                              borderRadius: BorderRadius.circular(50),
-                              child: Container(
-                                color: Theme.of(context).colorScheme.primary,
-                                width: 100.0,
-                                height: 100.0,
-                                child: _renderLocalPreview(),
-                              ),
-                            ),
-                          ),
-                          const SizedBox(height: 12),
-                          Text(
-                            FirebaseAuth.instance.currentUser!.displayName ??
-                                'Anonymous',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 20.0,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 10.0),
-                      child: Column(
+            StreamBuilder<QuerySnapshot>(
+              stream: _participantsStream,
+              builder: (context, snapshot) {
+                if (snapshot.hasError) {
+                  return const Text('Something went wrong');
+                }
+
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(
+                    child: CupertinoActivityIndicator(),
+                  );
+                }
+
+                return Center(
+                  child: Wrap(
+                    alignment: WrapAlignment.spaceBetween,
+                    direction: Axis.horizontal,
+                    spacing: 20,
+                    runSpacing: 40,
+                    children: snapshot.data!.docs.map((doc) {
+                      final Map<String, dynamic> data =
+                          doc.data() as Map<String, dynamic>;
+                      final int agoraUid = data['agoraUid'] as int;
+                      final String? name = data['name'] as String;
+                      final bool isShaking = data['isShaking'] as bool;
+
+                      return Column(
                         children: [
                           ClipRRect(
                             borderRadius: BorderRadius.circular(50),
-                            child: SizedBox(
+                            child: Container(
+                              color: Theme.of(context).colorScheme.primary,
                               width: 100.0,
                               height: 100.0,
-                              child: _renderRemoteVideo(),
+                              child: agoraUid == _me.agoraUid
+                                  ? _renderLocalPreview()
+                                  : _renderRemotePreview(agoraUid),
                             ),
                           ),
-                          const SizedBox(height: 12),
-                          const Text(
-                            'User B',
+                          const SizedBox(height: 10),
+                          Text(
+                            name ?? 'Anonymous',
                             style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 20.0,
+                              color: isShaking
+                                  ? Theme.of(context).colorScheme.error
+                                  : Theme.of(context).colorScheme.onPrimary,
                             ),
                           ),
                         ],
-                      ),
-                    ),
-                  ],
-                ),
-              ],
+                      );
+                    }).toList(),
+                  ),
+                );
+              },
             ),
             Align(
               alignment: const Alignment(0.00, 0.60),
               child: CupertinoButton.filled(
                 child: const Text('Share to friends!'),
                 onPressed: () {
-                  Clipboard.setData(ClipboardData(text: channelName));
-                  Share.share(channelName);
+                  Clipboard.setData(ClipboardData(text: roomName));
+                  Share.share(roomName);
                 },
               ),
             ),
@@ -354,85 +252,117 @@ class _RoomPageState extends State<RoomPage> {
     );
   }
 
+  Future<void> _onShake() async {
+    log('_shakeDetector.count: ${_shakeDetector.mShakeCount}');
+
+    if (_isShaking == true) {
+      return;
+    } else if (_shakeDetector.mShakeCount == 3) {
+      setState(() {
+        _isShaking = true;
+      });
+      _myParticipantRef.update({'isShaking': true});
+      Vibration.vibrate();
+    }
+
+    Future.delayed(const Duration(milliseconds: 8000), () async {
+      setState(() {
+        _isShaking = false;
+      });
+      _myParticipantRef.update({'isShaking': false});
+    });
+  }
+
+  Future<void> _initAgora() async {
+    RtcEngineContext _rtcEngineContext = RtcEngineContext(appId);
+
+    await [Permission.camera, Permission.microphone].request();
+    _rtcEngine = await RtcEngine.createWithContext(_rtcEngineContext);
+
+    // Just for hot-restart
+    // TODO: Remove in production
+    _rtcEngine.destroy();
+    _rtcEngine = await RtcEngine.createWithContext(_rtcEngineContext);
+
+    _rtcEngine.setEventHandler(
+      RtcEngineEventHandler(
+        joinChannelSuccess: (channel, uid, elapsed) {
+          log('Joined a room: $channel');
+          setState(() {
+            _joined = true;
+          });
+        },
+        userJoined: (uid, elapsed) {
+          log('Remote user joined: $uid');
+          setState(() {
+            _remoteAgoraUids.add(uid);
+          });
+        },
+        userOffline: (uid, reason) {
+          log('userOffline: $uid, reason: $reason');
+          setState(() {
+            _remoteAgoraUids.remove(uid);
+          });
+        },
+        error: (err) {
+          log('Error in Agora: $err');
+        },
+      ),
+    );
+
+    _join();
+  }
+
   Future<void> _join() async {
-    final String newToken = await _fetchTokenWithAccount();
+    final String newToken = await _fetchTokenWithUid();
 
     // Using 'newToken' because cannot use async/await inside of setState
     setState(() {
       token = newToken;
     });
 
-    await _rtcEngine.enableVideo();
-    await _rtcEngine.joinChannelWithUserAccount(token, channelName, _account);
+    try {
+      Future.wait([
+        _rtcEngine.enableVideo(),
+        _rtcEngine.joinChannel(token, roomName, null, _me.agoraUid),
+      ]);
+    } catch (e) {
+      log('Failed to join a room: $e');
+    }
 
-    _roomRef.get().then((docSnapshot) {
-      if (docSnapshot.exists) {
-        log('Room already exists. Updating existing doc on Firestore...');
-        // Add myself to the list of participants
-        _roomRef.update({
-          'participants': FieldValue.arrayUnion(
-            <Map>[
-              <String, dynamic>{
-                'displayName': _myName,
-                'uid': _account,
-                'isShaking': _isShaking,
-              }
-            ],
-          ),
-        });
-      } else {
-        log('Room doesn\'t exist. Creating new doc on Firestore...');
-        // Create new room on Firestore
-        _roomRef.set(<String, dynamic>{
-          'name': channelName,
-          'createdAt': DateTime.now().millisecondsSinceEpoch,
-          'owner': <String, dynamic>{
-            'displayName': _myName,
-            'uid': _account,
-          },
-          'participants': <Map>[
-            <String, dynamic>{
-              'displayName': _myName,
-              'uid': _account,
-              'isShaking': _isShaking,
-            },
-          ],
-        });
-      }
+    _myParticipantRef = await _participantsCollection.add({
+      'firebaseUid': _me.firebaseUid,
+      'agoraUid': _me.agoraUid,
+      'name': _me.name,
+      'isShaking': false,
     });
-
-    log('Joined the room.');
   }
 
   Future<void> _leave() async {
-    Future.wait([
-      _rtcEngine.leaveChannel(),
-      _roomRef.update({
-        'participants': FieldValue.arrayRemove(
-          <Map>[
-            <String, dynamic>{
-              'displayName': _myName,
-              'uid': _account,
-              'isShaking': _isShaking,
-            }
-          ],
-        ),
-      }),
-    ]);
+    _myParticipantRef.delete();
 
-    log('Left the channel.');
+    try {
+      Future.wait([
+        _rtcEngine.leaveChannel(),
+        _rtcEngine.disableVideo(),
+        _rtcEngine.destroy(),
+      ]);
+    } on Exception catch (e) {
+      log('Error leaving room: $e');
+    }
+
+    log('Left the room.');
     Navigator.pop(context);
   }
 
-  Future<String> _fetchTokenWithAccount() async {
+  Future<String> _fetchTokenWithUid() async {
     HttpsCallable callable =
-        FirebaseFunctions.instance.httpsCallable('fetchTokenWithAccount');
+        FirebaseFunctions.instance.httpsCallable('fetchTokenWithUid');
 
-    final result = await callable({'channelName': channelName});
-    final String token = result.data as String;
-    log('Got token via Cloud Functions: $token');
+    final result =
+        await callable({'channelName': roomName, 'agoraUid': _me.agoraUid});
 
-    return token;
+    return result.data as String;
   }
 
   Widget _renderLocalPreview() {
@@ -459,16 +389,24 @@ class _RoomPageState extends State<RoomPage> {
     }
   }
 
-  Widget _renderRemoteVideo() {
-    if (_remoteUid != 0) {
-      return rtc_remote_view.SurfaceView(
-        uid: _remoteUid,
-        channelId: '123',
-      );
-    } else {
-      return const Center(
-        child: Icon(CupertinoIcons.hourglass_tophalf_fill),
-      );
-    }
+  Widget _renderRemotePreview(int _remoteAgoraUid) {
+    return rtc_remote_view.SurfaceView(
+      uid: _remoteAgoraUid,
+      channelId: '123',
+    );
   }
+}
+
+class Participant {
+  final String firebaseUid;
+  final int agoraUid;
+  final String name;
+  final bool isShaking;
+
+  Participant({
+    required this.firebaseUid,
+    required this.agoraUid,
+    required this.name,
+    required this.isShaking,
+  });
 }

@@ -233,8 +233,8 @@ class _TabsPageState extends State<HomePage> {
   }
 
   void _onJoin(String newChannelName) {
-    channelName = newChannelName;
-    log('channelName: $channelName');
+    roomName = newChannelName;
+    log('channelName: $roomName');
     Navigator.push<Widget>(
       context,
       MaterialPageRoute(

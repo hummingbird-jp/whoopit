@@ -3,12 +3,12 @@ const admin = require("firebase-admin");
 const {RtcRole, RtcTokenBuilder} = require("agora-access-token");
 admin.initializeApp();
 
-exports.fetchTokenWithAccount = functions.https.onCall(
+exports.fetchTokenWithUid = functions.https.onCall(
     (data, context) => {
       const appID = "8d98fb1cbd094508bff710b6a2d199ef";
       const appCertificate = "dc369a70ad7543f8bee97b822f6d3372";
       const channelName = data.channelName;
-      const account = context.auth.uid;
+      const agoraUid = data.agoraUid;
       const role = RtcRole.PUBLISHER;
       const expirationTimeInSeconds = 3600;
       const currentTimestamp = Math.floor(Date.now() / 1000);
@@ -17,20 +17,20 @@ exports.fetchTokenWithAccount = functions.https.onCall(
       functions.logger.debug(`appID: ${appID}`);
       functions.logger.debug(`appCertificate: ${appCertificate}`);
       functions.logger.debug(`channelName: ${channelName}`);
-      functions.logger.debug(`account: ${account}`);
+      functions.logger.debug(`agoraUid: ${agoraUid}`);
       functions.logger.debug(`currentTimestamp: ${currentTimestamp}`);
       functions.logger.debug(`privilegeExpiredTs: ${privilegeExpiredTs}`);
 
       try {
-        const token = RtcTokenBuilder.buildTokenWithAccount(
+        const token = RtcTokenBuilder.buildTokenWithUid(
             appID,
             appCertificate,
             channelName,
-            account,
+            agoraUid,
             role,
             privilegeExpiredTs
         );
-        functions.logger.debug(`Token Generated with Account: ${token}`);
+        functions.logger.debug(`Token Generated with Agora UID: ${token}`);
         return token;
       } catch (error) {
         functions.logger.error(`Error generating token: ${error}`);
