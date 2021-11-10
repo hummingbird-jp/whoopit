@@ -8,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:whoopit/models/authentication.dart';
+import 'package:whoopit/pages/profile_page.dart';
 import 'package:whoopit/pages/signin_page.dart';
 
 import 'room_page.dart';
@@ -65,10 +66,10 @@ class _TabsPageState extends State<HomePage> {
                               child: const Text('Sign In'),
                             ),
                       // TODO: Implement 'Update Profile' button
-                      //CupertinoActionSheetAction(
-                      //  onPressed: () {},
-                      //  child: const Text('Update Profile'),
-                      //),
+                      CupertinoActionSheetAction(
+                        onPressed: _onUpdateProfile,
+                        child: const Text('Update Profile'),
+                      ),
                     ],
                     cancelButton: CupertinoActionSheetAction(
                       child: const Text('Cancel'),
@@ -242,6 +243,15 @@ class _TabsPageState extends State<HomePage> {
       MaterialPageRoute(
         builder: (context) => const RoomPage(),
       ),
+    );
+  }
+
+  void _onUpdateProfile() {
+    HapticFeedback.lightImpact();
+    Navigator.pop(context);
+    Navigator.push<Widget>(
+      context,
+      MaterialPageRoute(builder: (context) => ProfilePage()),
     );
   }
 

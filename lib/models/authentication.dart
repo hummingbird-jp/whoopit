@@ -63,4 +63,16 @@ class Authentication extends ChangeNotifier {
     await FirebaseAuth.instance.signOut().then((_) => _user = null);
     notifyListeners();
   }
+
+  Future<void> updateUserInfo({
+    required String newDisplayName,
+  }) async {
+    await _user!.updateDisplayName(newDisplayName);
+    notifyListeners();
+  }
+
+  Future<void> updatePhotoURL(String photoUrl) async {
+    await _user!.updatePhotoURL(photoUrl);
+    notifyListeners();
+  }
 }
