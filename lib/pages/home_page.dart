@@ -8,6 +8,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:whoopit/models/authentication.dart';
+import 'package:whoopit/pages/profile_page.dart';
 import 'package:whoopit/pages/signin_page.dart';
 
 import 'room_page.dart';
@@ -22,8 +23,7 @@ class HomePage extends StatefulHookWidget {
 class _TabsPageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
-    final Authentication authenticationModel =
-        useProvider(authenticationProvider);
+    final Authentication authModel = useProvider(authProvider);
 
     return WillPopScope(
       onWillPop: () async => false,
@@ -36,18 +36,18 @@ class _TabsPageState extends State<HomePage> {
                 showCupertinoModalPopup<void>(
                   context: context,
                   builder: (context) => CupertinoActionSheet(
-                    message: authenticationModel.isSignedIn
+                    message: authModel.isSignedIn
                         ? Text(
-                            'You\'re signed in as ${authenticationModel.user!.displayName}',
+                            'You\'re signed in as ${authModel.user!.displayName}',
                           )
                         : null,
                     actions: [
-                      authenticationModel.isSignedIn
+                      authModel.isSignedIn
                           ? CupertinoActionSheetAction(
                               isDestructiveAction: true,
                               isDefaultAction: true,
                               onPressed: () {
-                                authenticationModel.signOut();
+                                authModel.signOut();
                                 Navigator.pop(context);
                               },
                               child: const Text('Sign Out'),
@@ -65,11 +65,10 @@ class _TabsPageState extends State<HomePage> {
                               },
                               child: const Text('Sign In'),
                             ),
-                      // TODO: Implement 'Update Profile' button
-                      //CupertinoActionSheetAction(
-                      //  onPressed: () {},
-                      //  child: const Text('Update Profile'),
-                      //),
+                      CupertinoActionSheetAction(
+                        onPressed: _onUpdateProfile,
+                        child: const Text('Update Profile'),
+                      ),
                     ],
                     cancelButton: CupertinoActionSheetAction(
                       child: const Text('Cancel'),
@@ -104,7 +103,7 @@ class _TabsPageState extends State<HomePage> {
                 ),
               ),
               Visibility(
-                visible: authenticationModel.isSignedIn,
+                visible: authModel.isSignedIn,
                 child: SizedBox(
                   height: 48,
                   child: Row(
@@ -124,7 +123,7 @@ class _TabsPageState extends State<HomePage> {
                   ),
                 ),
               ),
-              !authenticationModel.isSignedIn
+              !authModel.isSignedIn
                   ? Center(
                       child: Hero(
                         tag: 'signin-button',
@@ -184,7 +183,7 @@ class _TabsPageState extends State<HomePage> {
                           ),
                         ),
                         GestureDetector(
-                          onTap: authenticationModel.isSignedIn
+                          onTap: authModel.isSignedIn
                               ? () => _onJoin(_getRandomString(10))
                               : () => Navigator.push<Widget>(
                                   context,
@@ -198,7 +197,7 @@ class _TabsPageState extends State<HomePage> {
                               color: Colors.white.withOpacity(0.07),
                               child: Align(
                                 alignment: const Alignment(-0.70, -0.70),
-                                child: authenticationModel.isSignedIn
+                                child: authModel.isSignedIn
                                     ? Text(
                                         'Create',
                                         style: TextStyle(
@@ -243,6 +242,15 @@ class _TabsPageState extends State<HomePage> {
       MaterialPageRoute(
         builder: (context) => const RoomPage(),
       ),
+    );
+  }
+
+  void _onUpdateProfile() {
+    HapticFeedback.lightImpact();
+    Navigator.pop(context);
+    Navigator.push<Widget>(
+      context,
+      MaterialPageRoute(builder: (context) => ProfilePage()),
     );
   }
 

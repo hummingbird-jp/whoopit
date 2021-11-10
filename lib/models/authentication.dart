@@ -4,7 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 
-final authenticationProvider = ChangeNotifierProvider((_) => Authentication());
+final authProvider = ChangeNotifierProvider((_) => Authentication());
 
 class Authentication extends ChangeNotifier {
   User? _user = FirebaseAuth.instance.currentUser;
@@ -61,6 +61,18 @@ class Authentication extends ChangeNotifier {
 
   Future<void> signOut() async {
     await FirebaseAuth.instance.signOut().then((_) => _user = null);
+    notifyListeners();
+  }
+
+  Future<void> updateUserInfo({
+    required String newDisplayName,
+  }) async {
+    await _user!.updateDisplayName(newDisplayName);
+    notifyListeners();
+  }
+
+  Future<void> updatePhotoURL(String photoUrl) async {
+    await _user!.updatePhotoURL(photoUrl);
     notifyListeners();
   }
 }

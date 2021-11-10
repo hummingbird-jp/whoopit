@@ -12,7 +12,7 @@ class SigninPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final authenticationModel = context.read(authenticationProvider);
+    final authModel = context.read(authProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -56,7 +56,7 @@ class SigninPage extends StatelessWidget {
                 child: CupertinoButton.filled(
                   child: const Text('SIGN IN'),
                   onPressed: () async {
-                    bool success = await authenticationModel.signIn(
+                    bool success = await authModel.signIn(
                       _emailController.text,
                       _passwordController.text,
                       (err) =>
