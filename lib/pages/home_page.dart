@@ -65,7 +65,6 @@ class _TabsPageState extends State<HomePage> {
                               },
                               child: const Text('Sign In'),
                             ),
-                      // TODO: Implement 'Update Profile' button
                       CupertinoActionSheetAction(
                         onPressed: _onUpdateProfile,
                         child: const Text('Update Profile'),
