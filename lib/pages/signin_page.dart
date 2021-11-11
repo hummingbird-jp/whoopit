@@ -90,7 +90,7 @@ class SigninPage extends StatelessWidget {
   }
 
   void _showErrorDialog(BuildContext context, String title, Exception e) {
-    showDialog<void>(
+    showCupertinoDialog<void>(
       context: context,
       builder: (context) {
         return CupertinoAlertDialog(

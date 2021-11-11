@@ -30,6 +30,13 @@ class ProfilePage extends HookWidget {
                 textCapitalization: TextCapitalization.words,
                 placeholder: 'New Name',
                 prefix: const Icon(CupertinoIcons.profile_circled),
+                validator: (value) {
+                  if (value!.isEmpty) {
+                    return 'Please enter a name';
+                  }
+                  return null;
+                },
+                autovalidateMode: AutovalidateMode.onUserInteraction,
                 style: TextStyle(
                   color: Theme.of(context).colorScheme.onBackground,
                 ),
@@ -37,11 +44,28 @@ class ProfilePage extends HookWidget {
               CupertinoButton.filled(
                 child: const Text('Update'),
                 onPressed: () {
-                  authModel.updateUserInfo(
-                    newDisplayName: _nameController.text,
-                  );
-
-                  Navigator.pop(context);
+                  if (_nameController.text.isNotEmpty) {
+                    authModel.updateUserInfo(
+                      newDisplayName: _nameController.text,
+                    );
+                    Navigator.pop(context);
+                  } else {
+                    showCupertinoDialog<void>(
+                      context: context,
+                      builder: (context) => CupertinoAlertDialog(
+                        title: const Text('Please enter a name'),
+                        actions: [
+                          CupertinoDialogAction(
+                            child: const Text('OK'),
+                            isDefaultAction: true,
+                            onPressed: () {
+                              Navigator.pop(context);
+                            },
+                          ),
+                        ],
+                      ),
+                    );
+                  }
                 },
               ),
               CupertinoButton(
