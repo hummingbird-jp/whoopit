@@ -1,7 +1,13 @@
+import 'dart:developer';
+import 'dart:io';
+
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:whoopit/models/authentication.dart';
 
 class ProfilePage extends HookWidget {
@@ -25,11 +31,49 @@ class ProfilePage extends HookWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
+              GestureDetector(
+                onTap: () async {
+                  XFile? pickedFile = await ImagePicker()
+                      .pickImage(source: ImageSource.gallery);
+
+                  if (pickedFile != null) {
+                    String filePath = pickedFile.path;
+                    File file = File(filePath);
+
+                    try {
+                      await FirebaseStorage.instance
+                          .ref()
+                          .child('profile_images')
+                          .child(authModel.uid)
+                          .child('profile_image')
+                          .putFile(file);
+
+                      authModel.updatePhotoURL(
+                        await FirebaseStorage.instance
+                            .ref()
+                            .child('profile_images')
+                            .child(authModel.uid)
+                            .child('profile_image')
+                            .getDownloadURL(),
+                      );
+                    } on FirebaseException catch (e) {
+                      log('Error on Firebase: $e');
+                    }
+                  }
+                },
+                child: authModel.isSignedIn || authModel.photoUrl != null
+                    ? CircleAvatar(
+                        backgroundImage:
+                            NetworkImage(authModel.photoUrl.toString()),
+                        radius: 50,
+                      )
+                    : const Icon(CupertinoIcons.profile_circled, size: 100),
+              ),
+              const SizedBox(height: 24),
               CupertinoTextFormFieldRow(
                 controller: _nameController,
                 textCapitalization: TextCapitalization.words,
                 placeholder: 'New Name',
-                prefix: const Icon(CupertinoIcons.profile_circled),
                 validator: (value) {
                   if (value!.isEmpty) {
                     return 'Please enter a name';
