@@ -11,10 +11,12 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:rounded_loading_button/rounded_loading_button.dart';
 import 'package:shake/shake.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:whoopit/models/authentication.dart';
 
 late String token;
 late String roomName;
@@ -34,6 +36,7 @@ class _RoomPageState extends State<RoomPage> {
     agoraUid: FirebaseAuth.instance.currentUser!.uid.hashCode,
     name: FirebaseAuth.instance.currentUser!.displayName ?? '',
     firebaseUid: FirebaseAuth.instance.currentUser!.uid,
+    photoUrl: FirebaseAuth.instance.currentUser!.photoURL ?? '',
     isShaking: false,
     isMuted: true,
   );
@@ -108,6 +111,7 @@ class _RoomPageState extends State<RoomPage> {
                         final String firebaseUid =
                             data['firebaseUid'] as String;
                         final String? name = data['name'] as String;
+                        final String photoUrl = data['photoUrl'] as String;
                         final bool isMe = agoraUid == _me.agoraUid;
                         final bool isMuted = data['isMuted'] as bool;
                         final bool isShaking = data['isShaking'] as bool;
@@ -126,6 +130,8 @@ class _RoomPageState extends State<RoomPage> {
                                     Center(
                                       child: Text(name!),
                                     ),
+                                    if (photoUrl != '')
+                                      Image(image: NetworkImage(photoUrl)),
                                     Visibility(
                                       visible: isMuted,
                                       child: Container(
@@ -409,6 +415,7 @@ class _RoomPageState extends State<RoomPage> {
       'firebaseUid': _me.firebaseUid,
       'agoraUid': _me.agoraUid,
       'name': _me.name,
+      'photoUrl': _me.photoUrl,
       'isMuted': _me.isMuted,
       'isShaking': false,
       'isClapping': false,
@@ -475,6 +482,7 @@ class Participant {
   final String firebaseUid;
   final int agoraUid;
   final String name;
+  final String photoUrl;
   final bool isMuted;
   final bool isShaking;
 
@@ -482,6 +490,7 @@ class Participant {
     required this.firebaseUid,
     required this.agoraUid,
     required this.name,
+    required this.photoUrl,
     required this.isMuted,
     required this.isShaking,
   });
