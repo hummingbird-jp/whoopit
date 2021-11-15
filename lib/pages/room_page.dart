@@ -7,6 +7,7 @@ import 'package:agora_rtc_engine/rtc_remote_view.dart' as rtc_remote_view;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -104,6 +105,8 @@ class _RoomPageState extends State<RoomPage> {
                         final Map<String, dynamic> data =
                             doc.data() as Map<String, dynamic>;
                         final int agoraUid = data['agoraUid'] as int;
+                        final String firebaseUid =
+                            data['firebaseUid'] as String;
                         final String? name = data['name'] as String;
                         final bool isMe = agoraUid == _me.agoraUid;
                         final bool isMuted = data['isMuted'] as bool;
@@ -120,9 +123,9 @@ class _RoomPageState extends State<RoomPage> {
                                 height: 100.0,
                                 child: Stack(
                                   children: [
-                                    isMe
-                                        ? _renderLocalPreview()
-                                        : _renderRemotePreview(agoraUid),
+                                    Center(
+                                      child: Text(name!),
+                                    ),
                                     Visibility(
                                       visible: isMuted,
                                       child: Container(
@@ -163,7 +166,6 @@ class _RoomPageState extends State<RoomPage> {
                               ),
                             ),
                             const SizedBox(height: 10),
-                            Text(name ?? 'Anonymous'),
                           ],
                         );
                       }).toList(),

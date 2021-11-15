@@ -11,7 +11,7 @@ class Authentication extends ChangeNotifier {
   String get uid => FirebaseAuth.instance.currentUser!.uid;
   String? get email => FirebaseAuth.instance.currentUser!.email;
   String? get displayName => FirebaseAuth.instance.currentUser!.displayName;
-  String? get photoUrl => FirebaseAuth.instance.currentUser!.photoURL;
+  String? get photoUrl => FirebaseAuth.instance.currentUser?.photoURL;
   bool get isSignedIn => _user != null;
 
   Future<bool> signUp(

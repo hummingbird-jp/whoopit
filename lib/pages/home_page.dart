@@ -35,15 +35,13 @@ class _TabsPageState extends State<HomePage> {
               onTap: () {
                 showCupertinoModalPopup<void>(
                   context: context,
-                  builder: (context) => CupertinoActionSheet(
-                    message: authModel.isSignedIn
-                        ? Text(
+                  builder: (context) => authModel.isSignedIn
+                      ? CupertinoActionSheet(
+                          message: Text(
                             'You\'re signed in as ${authModel.displayName}',
-                          )
-                        : null,
-                    actions: [
-                      authModel.isSignedIn
-                          ? CupertinoActionSheetAction(
+                          ),
+                          actions: [
+                            CupertinoActionSheetAction(
                               isDestructiveAction: true,
                               isDefaultAction: true,
                               onPressed: () {
@@ -51,8 +49,20 @@ class _TabsPageState extends State<HomePage> {
                                 Navigator.pop(context);
                               },
                               child: const Text('Sign Out'),
-                            )
-                          : CupertinoActionSheetAction(
+                            ),
+                            CupertinoActionSheetAction(
+                              onPressed: _onUpdateProfile,
+                              child: const Text('Update Profile'),
+                            ),
+                          ],
+                          cancelButton: CupertinoActionSheetAction(
+                            child: const Text('Cancel'),
+                            onPressed: () => Navigator.pop(context),
+                          ),
+                        )
+                      : CupertinoActionSheet(
+                          actions: [
+                            CupertinoActionSheetAction(
                               isDefaultAction: true,
                               onPressed: () {
                                 Navigator.pop(context);
@@ -65,21 +75,23 @@ class _TabsPageState extends State<HomePage> {
                               },
                               child: const Text('Sign In'),
                             ),
-                      CupertinoActionSheetAction(
-                        onPressed: _onUpdateProfile,
-                        child: const Text('Update Profile'),
-                      ),
-                    ],
-                    cancelButton: CupertinoActionSheetAction(
-                      child: const Text('Cancel'),
-                      onPressed: () => Navigator.pop(context),
-                    ),
-                  ),
+                          ],
+                          cancelButton: CupertinoActionSheetAction(
+                            child: const Text('Cancel'),
+                            onPressed: () => Navigator.pop(context),
+                          ),
+                        ),
                 );
               },
-              child: const Hero(
+              child: Hero(
                 tag: 'profile',
-                child: Icon(CupertinoIcons.profile_circled),
+                child: authModel.isSignedIn || authModel.photoUrl != null
+                    ? CircleAvatar(
+                        backgroundImage:
+                            NetworkImage(authModel.photoUrl.toString()),
+                        radius: 20,
+                      )
+                    : const Icon(CupertinoIcons.profile_circled),
               ),
             ),
             const SizedBox(width: 24.0),
