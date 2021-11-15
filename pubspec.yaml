@@ -17,6 +17,7 @@ dependencies:
   firebase_core: ^1.7.0
   firebase_crashlytics: ^2.2.4
   firebase_performance: ^0.7.1+2
+  firebase_storage: ^10.1.0
   flutter:
     sdk: flutter
   flutter_hooks: ^0.18.0
