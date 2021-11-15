@@ -8,7 +8,10 @@ final authProvider = ChangeNotifierProvider((_) => Authentication());
 
 class Authentication extends ChangeNotifier {
   User? _user = FirebaseAuth.instance.currentUser;
-  User? get user => _user;
+  String get uid => FirebaseAuth.instance.currentUser!.uid;
+  String? get email => FirebaseAuth.instance.currentUser!.email;
+  String? get displayName => FirebaseAuth.instance.currentUser!.displayName;
+  String? get photoUrl => FirebaseAuth.instance.currentUser!.photoURL;
   bool get isSignedIn => _user != null;
 
   Future<bool> signUp(

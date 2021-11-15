@@ -38,7 +38,7 @@ class _TabsPageState extends State<HomePage> {
                   builder: (context) => CupertinoActionSheet(
                     message: authModel.isSignedIn
                         ? Text(
-                            'You\'re signed in as ${authModel.user!.displayName}',
+                            'You\'re signed in as ${authModel.displayName}',
                           )
                         : null,
                     actions: [
