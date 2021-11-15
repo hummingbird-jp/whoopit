@@ -2,8 +2,6 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Need access to your photo library to tell yourself!</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
@@ -32,6 +30,8 @@
 	<string>Need camera access to show your face 😉</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>Need microphone access to talk with others 👋</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Need access to your photo library to tell yourself!</string>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>audio</string>
