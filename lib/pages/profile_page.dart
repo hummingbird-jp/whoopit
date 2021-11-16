@@ -61,12 +61,25 @@ class ProfilePage extends HookWidget {
                     }
                   }
                 },
-                child: authModel.isSignedIn || authModel.photoUrl != null
-                    ? CircleAvatar(
-                        backgroundImage: CachedNetworkImageProvider(
-                          authModel.photoUrl.toString(),
-                        ),
-                        radius: 50,
+                child: authModel.photoUrl != null
+                    ? Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          CircleAvatar(
+                            backgroundImage: CachedNetworkImageProvider(
+                              authModel.photoUrl.toString(),
+                            ),
+                            radius: 50,
+                          ),
+                          CircleAvatar(
+                            backgroundColor: Colors.black.withOpacity(0.5),
+                            radius: 50,
+                          ),
+                          const Icon(
+                            CupertinoIcons.pencil,
+                            size: 30,
+                          ),
+                        ],
                       )
                     : const Icon(CupertinoIcons.profile_circled, size: 100),
               ),
