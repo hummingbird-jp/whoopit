@@ -1,6 +1,7 @@
 import 'dart:developer';
 import 'dart:math' as math;
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
@@ -85,10 +86,11 @@ class _TabsPageState extends State<HomePage> {
               },
               child: Hero(
                 tag: 'profile',
-                child: authModel.isSignedIn || authModel.photoUrl != null
+                child: authModel.photoUrl != null
                     ? CircleAvatar(
-                        backgroundImage:
-                            NetworkImage(authModel.photoUrl.toString()),
+                        backgroundImage: CachedNetworkImageProvider(
+                          authModel.photoUrl.toString(),
+                        ),
                         radius: 20,
                       )
                     : const Icon(CupertinoIcons.profile_circled),

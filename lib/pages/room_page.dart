@@ -4,6 +4,7 @@ import 'dart:developer';
 import 'package:agora_rtc_engine/rtc_engine.dart';
 import 'package:agora_rtc_engine/rtc_local_view.dart' as rtc_local_view;
 import 'package:agora_rtc_engine/rtc_remote_view.dart' as rtc_remote_view;
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -108,8 +109,6 @@ class _RoomPageState extends State<RoomPage> {
                         final Map<String, dynamic> data =
                             doc.data() as Map<String, dynamic>;
                         final int agoraUid = data['agoraUid'] as int;
-                        final String firebaseUid =
-                            data['firebaseUid'] as String;
                         final String? name = data['name'] as String;
                         final String photoUrl = data['photoUrl'] as String;
                         final bool isMe = agoraUid == _me.agoraUid;
@@ -119,59 +118,70 @@ class _RoomPageState extends State<RoomPage> {
 
                         return Column(
                           children: [
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(50),
-                              child: Container(
-                                color: Theme.of(context).colorScheme.primary,
-                                width: 100.0,
-                                height: 100.0,
-                                child: Stack(
-                                  children: [
-                                    Center(
-                                      child: Text(name!),
-                                    ),
-                                    if (photoUrl != '')
-                                      Image(image: NetworkImage(photoUrl)),
-                                    Visibility(
-                                      visible: isMuted,
-                                      child: Container(
-                                        color: Theme.of(context)
+                            Stack(
+                              children: [
+                                photoUrl != ''
+                                    ? CircleAvatar(
+                                        backgroundImage:
+                                            CachedNetworkImageProvider(
+                                          photoUrl,
+                                        ),
+                                        radius: 50,
+                                      )
+                                    : CircleAvatar(
+                                        backgroundColor: Theme.of(context)
                                             .colorScheme
-                                            .primary
-                                            .withOpacity(0.8),
-                                        child: Center(
-                                          child: Icon(
-                                            CupertinoIcons.mic_off,
+                                            .secondary,
+                                        radius: 50,
+                                      ),
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(50),
+                                  child: SizedBox(
+                                    width: 100.0,
+                                    height: 100.0,
+                                    child: Stack(
+                                      children: [
+                                        Visibility(
+                                          visible: isMuted,
+                                          child: Container(
                                             color: Theme.of(context)
                                                 .colorScheme
-                                                .secondary,
+                                                .primary
+                                                .withOpacity(0.8),
+                                            child: Center(
+                                              child: Icon(
+                                                CupertinoIcons.mic_off,
+                                                color: Theme.of(context)
+                                                    .colorScheme
+                                                    .secondary,
+                                              ),
+                                            ),
                                           ),
                                         ),
-                                      ),
-                                    ),
-                                    Visibility(
-                                      visible: isShaking,
-                                      child: const Center(
-                                        child: Text(
-                                          '🍺',
-                                          style: TextStyle(fontSize: 80.0),
+                                        Visibility(
+                                          visible: isShaking,
+                                          child: const Center(
+                                            child: Text(
+                                              '🍺',
+                                              style: TextStyle(fontSize: 80.0),
+                                            ),
+                                          ),
                                         ),
-                                      ),
-                                    ),
-                                    Visibility(
-                                      visible: isClapping,
-                                      child: const Center(
-                                        child: Text(
-                                          '👏',
-                                          style: TextStyle(fontSize: 80.0),
+                                        Visibility(
+                                          visible: isClapping,
+                                          child: const Center(
+                                            child: Text(
+                                              '👏',
+                                              style: TextStyle(fontSize: 80.0),
+                                            ),
+                                          ),
                                         ),
-                                      ),
-                                    )
-                                  ],
+                                      ],
+                                    ),
+                                  ),
                                 ),
-                              ),
+                              ],
                             ),
-                            const SizedBox(height: 10),
                           ],
                         );
                       }).toList(),
