@@ -120,11 +120,10 @@ class _RoomPageState extends State<RoomPage> {
                                         ),
                                         radius: 50,
                                       )
-                                    : CircleAvatar(
-                                        backgroundColor: Theme.of(context)
-                                            .colorScheme
-                                            .secondary,
-                                        radius: 50,
+                                    : Center(
+                                        child: Text(
+                                          name ?? '',
+                                        ),
                                       ),
                                 ClipRRect(
                                   borderRadius: BorderRadius.circular(50),
