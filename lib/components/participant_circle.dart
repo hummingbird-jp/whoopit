@@ -10,8 +10,10 @@ class ParticipantCircle extends StatelessWidget {
     required this.isMuted,
     required this.isShaking,
     required this.isClapping,
+    this.size = 50,
   }) : super(key: key);
 
+  final double size;
   final String photoUrl;
   final String? name;
   final bool isMuted;
@@ -27,7 +29,7 @@ class ParticipantCircle extends StatelessWidget {
                 backgroundImage: CachedNetworkImageProvider(
                   photoUrl,
                 ),
-                radius: 50,
+                radius: size,
               )
             : Center(
                 child: Text(

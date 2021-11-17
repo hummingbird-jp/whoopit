@@ -2,12 +2,14 @@ import 'dart:developer';
 import 'dart:math' as math;
 
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:whoopit/components/participant_circle.dart';
 import 'package:whoopit/components/signin_button.dart';
 import 'package:whoopit/models/authentication.dart';
 import 'package:whoopit/pages/profile_page.dart';
@@ -169,33 +171,87 @@ class _TabsPageState extends State<HomePage> {
     );
   }
 
-  GestureDetector buildRoomTile(String roomId, String roomName) {
+  Widget buildRoomTile(String roomId, String roomName) {
+    final Stream<QuerySnapshot> _participantsStream = FirebaseFirestore.instance
+        .collection('rooms')
+        .doc(roomId)
+        .collection('participants')
+        .snapshots();
+
     return GestureDetector(
       onTap: () => _onJoin(roomId),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(20.0),
-        child: Container(
-          width: 160.0,
-          height: 160.0,
-          color: Colors.white.withOpacity(0.07),
-          child: Align(
-            alignment: const Alignment(-0.70, -0.70),
-            child: Text(
-              roomName,
-              style: TextStyle(
-                color: Colors.white.withOpacity(0.5),
+        child: Stack(
+          children: [
+            Container(
+              width: 160.0,
+              height: 160.0,
+              color: Colors.white.withOpacity(0.07),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(top: 16.0),
+                    child: Text(
+                      roomName,
+                      textAlign: TextAlign.left,
+                      style: TextStyle(
+                        color: Colors.white.withOpacity(0.5),
+                      ),
+                    ),
+                  ),
+                  StreamBuilder<QuerySnapshot>(
+                    stream: _participantsStream,
+                    builder: (context, snapshot) {
+                      if (snapshot.hasError) {
+                        return const Text('Something went wrong');
+                      }
+
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(
+                          child: CupertinoActivityIndicator(),
+                        );
+                      }
+
+                      return Align(
+                        alignment: Alignment.center,
+                        child: Wrap(
+                          alignment: WrapAlignment.center,
+                          runAlignment: WrapAlignment.center,
+                          direction: Axis.horizontal,
+                          spacing: 10.0,
+                          children: snapshot.data!.docs.map((doc) {
+                            final Map<String, dynamic> data =
+                                doc.data() as Map<String, dynamic>;
+                            final String photoUrl = data['photoUrl'] as String;
+
+                            return ParticipantCircle(
+                              photoUrl: photoUrl,
+                              name: null,
+                              isMuted: false,
+                              isShaking: false,
+                              isClapping: false,
+                              size: 20,
+                            );
+                          }).toList(),
+                        ),
+                      );
+                    },
+                  ),
+                ],
               ),
             ),
-          ),
+          ],
         ),
       ),
     );
   }
 
   void _onJoin(String newChannelName) {
-    roomName = newChannelName;
+    roomId = newChannelName;
     HapticFeedback.lightImpact();
-    log('channelName: $roomName');
+    log('channelName: $roomId');
 
     Navigator.push<Widget>(
       context,

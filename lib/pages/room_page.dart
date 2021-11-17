@@ -15,7 +15,7 @@ import 'package:share_plus/share_plus.dart';
 import 'package:whoopit/components/participant_circle.dart';
 
 late String token;
-late String roomName;
+late String roomId;
 
 class RoomPage extends StatefulWidget {
   const RoomPage({Key? key}) : super(key: key);
@@ -39,14 +39,14 @@ class _RoomPageState extends State<RoomPage> {
 
   final CollectionReference _participantsCollection = FirebaseFirestore.instance
       .collection('rooms')
-      .doc(roomName)
+      .doc(roomId)
       .collection('participants');
   // Will be initialized after joining the channel
   final List<int> _remoteAgoraUids = [];
   late final DocumentReference _myParticipantRef;
   final Stream<QuerySnapshot> _participantsStream = FirebaseFirestore.instance
       .collection('rooms')
-      .doc(roomName)
+      .doc(roomId)
       .collection('participants')
       .snapshots();
 
@@ -74,7 +74,7 @@ class _RoomPageState extends State<RoomPage> {
       child: Scaffold(
         appBar: AppBar(
           automaticallyImplyLeading: false,
-          title: Text(roomName),
+          title: Text(roomId),
         ),
         backgroundColor: Theme.of(context).colorScheme.background,
         body: SafeArea(
@@ -129,8 +129,8 @@ class _RoomPageState extends State<RoomPage> {
                 child: CupertinoButton.filled(
                   child: const Text('Share to friends!'),
                   onPressed: () {
-                    Clipboard.setData(ClipboardData(text: roomName));
-                    Share.share(roomName);
+                    Clipboard.setData(ClipboardData(text: roomId));
+                    Share.share(roomId);
                   },
                 ),
               ),
@@ -344,7 +344,7 @@ class _RoomPageState extends State<RoomPage> {
 
     try {
       Future.wait([
-        _rtcEngine.joinChannel(token, roomName, null, _me.agoraUid),
+        _rtcEngine.joinChannel(token, roomId, null, _me.agoraUid),
       ]);
     } catch (e) {
       log('Failed to join a room: $e');
@@ -398,7 +398,7 @@ class _RoomPageState extends State<RoomPage> {
         FirebaseFunctions.instance.httpsCallable('fetchTokenWithUid');
 
     final result =
-        await callable({'channelName': roomName, 'agoraUid': _me.agoraUid});
+        await callable({'channelName': roomId, 'agoraUid': _me.agoraUid});
 
     return result.data as String;
   }
