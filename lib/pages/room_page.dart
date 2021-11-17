@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:developer';
 
 import 'package:agora_rtc_engine/rtc_engine.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -13,9 +12,10 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:rounded_loading_button/rounded_loading_button.dart';
 import 'package:shake/shake.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:whoopit/components/participant_circle.dart';
 
 late String token;
-late String roomName;
+late String roomId;
 
 class RoomPage extends StatefulWidget {
   const RoomPage({Key? key}) : super(key: key);
@@ -39,14 +39,14 @@ class _RoomPageState extends State<RoomPage> {
 
   final CollectionReference _participantsCollection = FirebaseFirestore.instance
       .collection('rooms')
-      .doc(roomName)
+      .doc(roomId)
       .collection('participants');
   // Will be initialized after joining the channel
   final List<int> _remoteAgoraUids = [];
   late final DocumentReference _myParticipantRef;
   final Stream<QuerySnapshot> _participantsStream = FirebaseFirestore.instance
       .collection('rooms')
-      .doc(roomName)
+      .doc(roomId)
       .collection('participants')
       .snapshots();
 
@@ -74,7 +74,7 @@ class _RoomPageState extends State<RoomPage> {
       child: Scaffold(
         appBar: AppBar(
           automaticallyImplyLeading: false,
-          title: Text(roomName),
+          title: Text(roomId),
         ),
         backgroundColor: Theme.of(context).colorScheme.background,
         body: SafeArea(
@@ -110,68 +110,12 @@ class _RoomPageState extends State<RoomPage> {
 
                         return Column(
                           children: [
-                            Stack(
-                              children: [
-                                photoUrl != ''
-                                    ? CircleAvatar(
-                                        backgroundImage:
-                                            CachedNetworkImageProvider(
-                                          photoUrl,
-                                        ),
-                                        radius: 50,
-                                      )
-                                    : Center(
-                                        child: Text(
-                                          name ?? '',
-                                        ),
-                                      ),
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(50),
-                                  child: SizedBox(
-                                    width: 100.0,
-                                    height: 100.0,
-                                    child: Stack(
-                                      children: [
-                                        Visibility(
-                                          visible: isMuted,
-                                          child: Container(
-                                            color: Theme.of(context)
-                                                .colorScheme
-                                                .primary
-                                                .withOpacity(0.8),
-                                            child: Center(
-                                              child: Icon(
-                                                CupertinoIcons.mic_off,
-                                                color: Theme.of(context)
-                                                    .colorScheme
-                                                    .secondary,
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                        Visibility(
-                                          visible: isShaking,
-                                          child: const Center(
-                                            child: Text(
-                                              '🍺',
-                                              style: TextStyle(fontSize: 80.0),
-                                            ),
-                                          ),
-                                        ),
-                                        Visibility(
-                                          visible: isClapping,
-                                          child: const Center(
-                                            child: Text(
-                                              '👏',
-                                              style: TextStyle(fontSize: 80.0),
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ],
+                            ParticipantCircle(
+                              photoUrl: photoUrl,
+                              name: name,
+                              isMuted: isMuted,
+                              isShaking: isShaking,
+                              isClapping: isClapping,
                             ),
                           ],
                         );
@@ -185,8 +129,8 @@ class _RoomPageState extends State<RoomPage> {
                 child: CupertinoButton.filled(
                   child: const Text('Share to friends!'),
                   onPressed: () {
-                    Clipboard.setData(ClipboardData(text: roomName));
-                    Share.share(roomName);
+                    Clipboard.setData(ClipboardData(text: roomId));
+                    Share.share(roomId);
                   },
                 ),
               ),
@@ -400,7 +344,7 @@ class _RoomPageState extends State<RoomPage> {
 
     try {
       Future.wait([
-        _rtcEngine.joinChannel(token, roomName, null, _me.agoraUid),
+        _rtcEngine.joinChannel(token, roomId, null, _me.agoraUid),
       ]);
     } catch (e) {
       log('Failed to join a room: $e');
@@ -454,7 +398,7 @@ class _RoomPageState extends State<RoomPage> {
         FirebaseFunctions.instance.httpsCallable('fetchTokenWithUid');
 
     final result =
-        await callable({'channelName': roomName, 'agoraUid': _me.agoraUid});
+        await callable({'channelName': roomId, 'agoraUid': _me.agoraUid});
 
     return result.data as String;
   }
