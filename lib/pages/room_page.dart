@@ -2,22 +2,17 @@ import 'dart:async';
 import 'dart:developer';
 
 import 'package:agora_rtc_engine/rtc_engine.dart';
-import 'package:agora_rtc_engine/rtc_local_view.dart' as rtc_local_view;
-import 'package:agora_rtc_engine/rtc_remote_view.dart' as rtc_remote_view;
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:rounded_loading_button/rounded_loading_button.dart';
 import 'package:shake/shake.dart';
 import 'package:share_plus/share_plus.dart';
-import 'package:whoopit/models/authentication.dart';
 
 late String token;
 late String roomName;
@@ -58,7 +53,6 @@ class _RoomPageState extends State<RoomPage> {
   late RtcEngine _rtcEngine;
   late ShakeDetector _shakeDetector;
 
-  bool _isMeJoined = false;
   bool _isMeMuted = true;
   bool _isMeShaking = false;
   bool _isMeClapping = false;
@@ -108,10 +102,8 @@ class _RoomPageState extends State<RoomPage> {
                       children: snapshot.data!.docs.map((doc) {
                         final Map<String, dynamic> data =
                             doc.data() as Map<String, dynamic>;
-                        final int agoraUid = data['agoraUid'] as int;
                         final String? name = data['name'] as String;
                         final String photoUrl = data['photoUrl'] as String;
-                        final bool isMe = agoraUid == _me.agoraUid;
                         final bool isMuted = data['isMuted'] as bool;
                         final bool isShaking = data['isShaking'] as bool;
                         final bool isClapping = data['isClapping'] as bool;
@@ -316,9 +308,6 @@ class _RoomPageState extends State<RoomPage> {
       RtcEngineEventHandler(
         joinChannelSuccess: (channel, uid, elapsed) {
           log('Joined a room: $channel');
-          setState(() {
-            _isMeJoined = true;
-          });
         },
         userJoined: (uid, elapsed) {
           log('Remote user joined: $uid');
@@ -412,7 +401,6 @@ class _RoomPageState extends State<RoomPage> {
 
     try {
       Future.wait([
-        _rtcEngine.enableVideo(),
         _rtcEngine.joinChannel(token, roomName, null, _me.agoraUid),
       ]);
     } catch (e) {
@@ -470,21 +458,6 @@ class _RoomPageState extends State<RoomPage> {
         await callable({'channelName': roomName, 'agoraUid': _me.agoraUid});
 
     return result.data as String;
-  }
-
-  Widget _renderLocalPreview() {
-    if (_isMeJoined) {
-      return rtc_local_view.SurfaceView();
-    } else {
-      return const CupertinoActivityIndicator();
-    }
-  }
-
-  Widget _renderRemotePreview(int _remoteAgoraUid) {
-    return rtc_remote_view.SurfaceView(
-      uid: _remoteAgoraUid,
-      channelId: '123',
-    );
   }
 }
 
