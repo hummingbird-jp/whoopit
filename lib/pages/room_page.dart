@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:developer';
 
 import 'package:agora_rtc_engine/rtc_engine.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -13,6 +12,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:rounded_loading_button/rounded_loading_button.dart';
 import 'package:shake/shake.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:whoopit/components/participant_circle.dart';
 
 late String token;
 late String roomName;
@@ -110,68 +110,12 @@ class _RoomPageState extends State<RoomPage> {
 
                         return Column(
                           children: [
-                            Stack(
-                              children: [
-                                photoUrl != ''
-                                    ? CircleAvatar(
-                                        backgroundImage:
-                                            CachedNetworkImageProvider(
-                                          photoUrl,
-                                        ),
-                                        radius: 50,
-                                      )
-                                    : Center(
-                                        child: Text(
-                                          name ?? '',
-                                        ),
-                                      ),
-                                ClipRRect(
-                                  borderRadius: BorderRadius.circular(50),
-                                  child: SizedBox(
-                                    width: 100.0,
-                                    height: 100.0,
-                                    child: Stack(
-                                      children: [
-                                        Visibility(
-                                          visible: isMuted,
-                                          child: Container(
-                                            color: Theme.of(context)
-                                                .colorScheme
-                                                .primary
-                                                .withOpacity(0.8),
-                                            child: Center(
-                                              child: Icon(
-                                                CupertinoIcons.mic_off,
-                                                color: Theme.of(context)
-                                                    .colorScheme
-                                                    .secondary,
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                        Visibility(
-                                          visible: isShaking,
-                                          child: const Center(
-                                            child: Text(
-                                              '🍺',
-                                              style: TextStyle(fontSize: 80.0),
-                                            ),
-                                          ),
-                                        ),
-                                        Visibility(
-                                          visible: isClapping,
-                                          child: const Center(
-                                            child: Text(
-                                              '👏',
-                                              style: TextStyle(fontSize: 80.0),
-                                            ),
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ],
+                            ParticipantCircle(
+                              photoUrl: photoUrl,
+                              name: name,
+                              isMuted: isMuted,
+                              isShaking: isShaking,
+                              isClapping: isClapping,
                             ),
                           ],
                         );

@@ -8,6 +8,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:whoopit/components/signin_button.dart';
 import 'package:whoopit/models/authentication.dart';
 import 'package:whoopit/pages/profile_page.dart';
 import 'package:whoopit/pages/signin_page.dart';
@@ -138,108 +139,53 @@ class _TabsPageState extends State<HomePage> {
                 ),
               ),
               !authModel.isSignedIn
-                  ? Center(
-                      child: Hero(
-                        tag: 'signin-button',
-                        child: CupertinoButton.filled(
-                          child: const Text('SIGN IN'),
-                          onPressed: () => Navigator.push<Widget>(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => SigninPage()),
-                          ),
-                        ),
-                      ),
-                    )
-                  : Wrap(
-                      alignment: WrapAlignment.center,
-                      spacing: 20.0,
-                      runSpacing: 20.0,
-                      children: [
-                        GestureDetector(
-                          onTap: () => _onJoin('roomA'),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(20.0),
-                            child: Container(
-                              width: 160.0,
-                              height: 160.0,
-                              color: Colors.white.withOpacity(0.07),
-                              child: Align(
-                                alignment: const Alignment(-0.70, -0.70),
-                                child: Text(
-                                  'Room A',
-                                  style: TextStyle(
-                                    color: Colors.white.withOpacity(0.5),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                        GestureDetector(
-                          onTap: () => _onJoin('roomB'),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(20.0),
-                            child: Container(
-                              width: 160.0,
-                              height: 160.0,
-                              color: Colors.white.withOpacity(0.07),
-                              child: Align(
-                                alignment: const Alignment(-0.70, -0.70),
-                                child: Text(
-                                  'Room B',
-                                  style: TextStyle(
-                                    color: Colors.white.withOpacity(0.5),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                        GestureDetector(
-                          onTap: authModel.isSignedIn
-                              ? () => _onJoin(_getRandomString(10))
-                              : () => Navigator.push<Widget>(
-                                  context,
-                                  MaterialPageRoute(
-                                      builder: (context) => SigninPage())),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(20.0),
-                            child: Container(
-                              width: 160.0,
-                              height: 160.0,
-                              color: Colors.white.withOpacity(0.07),
-                              child: Align(
-                                alignment: const Alignment(-0.70, -0.70),
-                                child: authModel.isSignedIn
-                                    ? Text(
-                                        'Create',
-                                        style: TextStyle(
-                                          color: Colors.white.withOpacity(0.5),
-                                        ),
-                                      )
-                                    : Text(
-                                        'Sign In to Create',
-                                        style: TextStyle(
-                                          color: Colors.white.withOpacity(0.9),
-                                          fontWeight: FontWeight.bold,
-                                        ),
-                                      ),
-                              ),
-                            ),
-                          ),
-                        ),
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(20.0),
-                          child: Container(
-                            width: 160.0,
-                            height: 160.0,
-                            color: Colors.transparent,
-                          ),
-                        ),
-                      ],
-                    ),
+                  ? const SigninButton()
+                  : buildRoomTileList(),
             ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Wrap buildRoomTileList() {
+    return Wrap(
+      alignment: WrapAlignment.center,
+      spacing: 20.0,
+      runSpacing: 20.0,
+      children: [
+        buildRoomTile('roomA', 'Room A'),
+        buildRoomTile('roomB', 'Room B'),
+        buildRoomTile(_getRandomString(10), 'Create'),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(20.0),
+          child: Container(
+            width: 160.0,
+            height: 160.0,
+            color: Colors.transparent,
+          ),
+        ),
+      ],
+    );
+  }
+
+  GestureDetector buildRoomTile(String roomId, String roomName) {
+    return GestureDetector(
+      onTap: () => _onJoin(roomId),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20.0),
+        child: Container(
+          width: 160.0,
+          height: 160.0,
+          color: Colors.white.withOpacity(0.07),
+          child: Align(
+            alignment: const Alignment(-0.70, -0.70),
+            child: Text(
+              roomName,
+              style: TextStyle(
+                color: Colors.white.withOpacity(0.5),
+              ),
+            ),
           ),
         ),
       ),
