@@ -37,6 +37,8 @@ class _RoomPageState extends State<RoomPage> {
     isMuted: true,
   );
 
+  final CollectionReference<Map<String, dynamic>> _roomsCollection =
+      FirebaseFirestore.instance.collection('rooms');
   final CollectionReference _participantsCollection = FirebaseFirestore.instance
       .collection('rooms')
       .doc(roomId)
@@ -44,11 +46,6 @@ class _RoomPageState extends State<RoomPage> {
   // Will be initialized after joining the channel
   final List<int> _remoteAgoraUids = [];
   late final DocumentReference _myParticipantRef;
-  final Stream<QuerySnapshot> _participantsStream = FirebaseFirestore.instance
-      .collection('rooms')
-      .doc(roomId)
-      .collection('participants')
-      .snapshots();
 
   late RtcEngine _rtcEngine;
   late ShakeDetector _shakeDetector;
@@ -69,12 +66,31 @@ class _RoomPageState extends State<RoomPage> {
 
   @override
   Widget build(BuildContext context) {
+    final Stream<DocumentSnapshot<Map<String, dynamic>>> _roomStream =
+        _roomsCollection.doc(roomId).snapshots();
+    final Stream<QuerySnapshot> _participantsStream =
+        _participantsCollection.snapshots();
+
     return WillPopScope(
       onWillPop: () async => false,
       child: Scaffold(
         appBar: AppBar(
           automaticallyImplyLeading: false,
-          title: Text(roomId),
+          title: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+              stream: _roomStream,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Text('Loading...');
+                }
+
+                if (snapshot.hasError || !snapshot.hasData) {
+                  return const Text('Something went wrong');
+                }
+
+                Map<String, dynamic> data =
+                    snapshot.data!.data() as Map<String, dynamic>;
+                return Text(data['roomName'] as String);
+              }),
         ),
         backgroundColor: Theme.of(context).colorScheme.background,
         body: SafeArea(
