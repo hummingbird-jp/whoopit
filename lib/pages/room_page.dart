@@ -37,6 +37,8 @@ class _RoomPageState extends State<RoomPage> {
     isMuted: true,
   );
 
+  final CollectionReference<Map<String, dynamic>> _roomsCollection =
+      FirebaseFirestore.instance.collection('rooms');
   final CollectionReference _participantsCollection = FirebaseFirestore.instance
       .collection('rooms')
       .doc(roomId)
@@ -44,11 +46,6 @@ class _RoomPageState extends State<RoomPage> {
   // Will be initialized after joining the channel
   final List<int> _remoteAgoraUids = [];
   late final DocumentReference _myParticipantRef;
-  final Stream<QuerySnapshot> _participantsStream = FirebaseFirestore.instance
-      .collection('rooms')
-      .doc(roomId)
-      .collection('participants')
-      .snapshots();
 
   late RtcEngine _rtcEngine;
   late ShakeDetector _shakeDetector;
@@ -69,12 +66,91 @@ class _RoomPageState extends State<RoomPage> {
 
   @override
   Widget build(BuildContext context) {
+    final Stream<DocumentSnapshot<Map<String, dynamic>>> _roomStream =
+        _roomsCollection.doc(roomId).snapshots();
+    final Stream<QuerySnapshot> _participantsStream =
+        _participantsCollection.snapshots();
+
     return WillPopScope(
       onWillPop: () async => false,
       child: Scaffold(
         appBar: AppBar(
           automaticallyImplyLeading: false,
-          title: Text(roomId),
+          title: GestureDetector(
+            onTap: () {
+              // TODO: Show cupertino dialog which accepts user input
+              // and updates the room name
+              GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+
+              showCupertinoDialog<void>(
+                  context: context,
+                  builder: (context) => CupertinoAlertDialog(
+                        title: const Text('New Room Name'),
+                        content: Form(
+                          key: _formKey,
+                          child: CupertinoTextFormFieldRow(
+                            autofocus: true,
+                            autocorrect: false,
+                            autovalidateMode:
+                                AutovalidateMode.onUserInteraction,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Cannot be blank';
+                              }
+                              if (value.length > 20) {
+                                return 'Must be less than 20 characters';
+                              }
+                              if (value.contains(RegExp(r'[^a-zA-Z0-9]'))) {
+                                return 'Must contain only letters and numbers';
+                              }
+                              return null;
+                            },
+                            style: TextStyle(
+                                color: Theme.of(context).colorScheme.onPrimary),
+                            onSaved: (value) {
+                              log('onSaved');
+
+                              _roomsCollection
+                                  .doc(roomId)
+                                  .update({'roomName': value});
+                            },
+                          ),
+                        ),
+                        actions: <Widget>[
+                          CupertinoDialogAction(
+                            isDestructiveAction: true,
+                            child: const Text('Cancel'),
+                            onPressed: () => Navigator.pop(context),
+                          ),
+                          CupertinoDialogAction(
+                            isDefaultAction: true,
+                            child: const Text('Save'),
+                            onPressed: () {
+                              if (_formKey.currentState!.validate()) {
+                                _formKey.currentState!.save();
+                                Navigator.pop(context);
+                              }
+                            },
+                          ),
+                        ],
+                      ));
+            },
+            child: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+                stream: _roomStream,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Text('Loading...');
+                  }
+
+                  if (snapshot.hasError || !snapshot.hasData) {
+                    return const Text('Something went wrong');
+                  }
+
+                  Map<String, dynamic> data =
+                      snapshot.data!.data() as Map<String, dynamic>;
+                  return Text(data['roomName'] as String);
+                }),
+          ),
         ),
         backgroundColor: Theme.of(context).colorScheme.background,
         body: SafeArea(
