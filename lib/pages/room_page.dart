@@ -363,6 +363,12 @@ class _RoomPageState extends State<RoomPage> {
       _isMeMuted = !_isMeMuted;
     });
 
+    if (_isMeMuted) {
+      _rtcEngine.disableAudio();
+    } else {
+      _rtcEngine.enableAudio();
+    }
+
     Timer(const Duration(milliseconds: 200), () {
       _isMeMuted
           ? _muteButtonController.error()
@@ -408,6 +414,7 @@ class _RoomPageState extends State<RoomPage> {
     try {
       Future.wait([
         _rtcEngine.joinChannel(token, roomId, null, _me.agoraUid),
+        _rtcEngine.disableAudio(),
       ]);
     } catch (e) {
       log('Failed to join a room: $e');
