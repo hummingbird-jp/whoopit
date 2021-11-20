@@ -76,21 +76,81 @@ class _RoomPageState extends State<RoomPage> {
       child: Scaffold(
         appBar: AppBar(
           automaticallyImplyLeading: false,
-          title: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
-              stream: _roomStream,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Text('Loading...');
-                }
+          title: GestureDetector(
+            onTap: () {
+              // TODO: Show cupertino dialog which accepts user input
+              // and updates the room name
+              GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
-                if (snapshot.hasError || !snapshot.hasData) {
-                  return const Text('Something went wrong');
-                }
+              showCupertinoDialog<void>(
+                  context: context,
+                  builder: (context) => CupertinoAlertDialog(
+                        title: const Text('New Room Name'),
+                        content: Form(
+                          key: _formKey,
+                          child: CupertinoTextFormFieldRow(
+                            autofocus: true,
+                            autocorrect: false,
+                            autovalidateMode:
+                                AutovalidateMode.onUserInteraction,
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Cannot be blank';
+                              }
+                              if (value.length > 20) {
+                                return 'Must be less than 20 characters';
+                              }
+                              if (value.contains(RegExp(r'[^a-zA-Z0-9]'))) {
+                                return 'Must contain only letters and numbers';
+                              }
+                              return null;
+                            },
+                            style: TextStyle(
+                                color: Theme.of(context).colorScheme.onPrimary),
+                            onSaved: (value) {
+                              log('onSaved');
 
-                Map<String, dynamic> data =
-                    snapshot.data!.data() as Map<String, dynamic>;
-                return Text(data['roomName'] as String);
-              }),
+                              _roomsCollection
+                                  .doc(roomId)
+                                  .update({'roomName': value});
+                            },
+                          ),
+                        ),
+                        actions: <Widget>[
+                          CupertinoDialogAction(
+                            isDestructiveAction: true,
+                            child: const Text('Cancel'),
+                            onPressed: () => Navigator.pop(context),
+                          ),
+                          CupertinoDialogAction(
+                            isDefaultAction: true,
+                            child: const Text('Save'),
+                            onPressed: () {
+                              if (_formKey.currentState!.validate()) {
+                                _formKey.currentState!.save();
+                                Navigator.pop(context);
+                              }
+                            },
+                          ),
+                        ],
+                      ));
+            },
+            child: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+                stream: _roomStream,
+                builder: (context, snapshot) {
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Text('Loading...');
+                  }
+
+                  if (snapshot.hasError || !snapshot.hasData) {
+                    return const Text('Something went wrong');
+                  }
+
+                  Map<String, dynamic> data =
+                      snapshot.data!.data() as Map<String, dynamic>;
+                  return Text(data['roomName'] as String);
+                }),
+          ),
         ),
         backgroundColor: Theme.of(context).colorScheme.background,
         body: SafeArea(

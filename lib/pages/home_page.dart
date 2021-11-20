@@ -151,14 +151,17 @@ class _TabsPageState extends State<HomePage> {
   }
 
   Wrap buildRoomTileList() {
+    CollectionReference<Map<String, dynamic>> roomsRef =
+        FirebaseFirestore.instance.collection('rooms');
+
     return Wrap(
       alignment: WrapAlignment.center,
       spacing: 20.0,
       runSpacing: 20.0,
       children: [
-        buildRoomTile('roomA', 'Room A'),
-        buildRoomTile('roomB', 'Room B'),
-        buildRoomTile(_getRandomString(10), 'Create'),
+        buildRoomTile(roomsRef, 'roomA', 'Room A'),
+        buildRoomTile(roomsRef, 'roomB', 'Room B'),
+        buildRoomTile(roomsRef, _getRandomString(10), 'Create'),
         ClipRRect(
           borderRadius: BorderRadius.circular(20.0),
           child: Container(
@@ -171,12 +174,13 @@ class _TabsPageState extends State<HomePage> {
     );
   }
 
-  Widget buildRoomTile(String roomId, String roomName) {
-    final Stream<QuerySnapshot> _participantsStream = FirebaseFirestore.instance
-        .collection('rooms')
-        .doc(roomId)
-        .collection('participants')
-        .snapshots();
+  Widget buildRoomTile(
+    CollectionReference<Map<String, dynamic>> roomsRef,
+    String roomId,
+    String roomName,
+  ) {
+    final Stream<QuerySnapshot> _participantsStream =
+        roomsRef.doc(roomId).collection('participants').snapshots();
 
     return GestureDetector(
       onTap: () => _onJoin(roomId),
@@ -193,6 +197,7 @@ class _TabsPageState extends State<HomePage> {
                 children: [
                   Padding(
                     padding: const EdgeInsets.only(top: 16.0),
+                    // TODO: Make roomName to listen to the roomName field
                     child: Text(
                       roomName,
                       textAlign: TextAlign.left,
