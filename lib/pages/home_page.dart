@@ -233,10 +233,6 @@ class _TabsPageState extends State<HomePage> {
 
                             return ParticipantCircle(
                               photoUrl: photoUrl,
-                              name: null,
-                              isMuted: false,
-                              isShaking: false,
-                              isClapping: false,
                               size: 20,
                             );
                           }).toList(),
