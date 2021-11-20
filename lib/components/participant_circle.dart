@@ -79,4 +79,35 @@ class ParticipantCircle extends StatelessWidget {
       ],
     );
   }
+
+  AnimatedOpacity buildBoom() {
+    HapticFeedback.vibrate();
+
+    return const AnimatedOpacity(
+      opacity: 1.0,
+      duration: Duration(milliseconds: 500),
+      child: Center(
+        child: Text(
+          '💥',
+          style: TextStyle(fontSize: 80.0),
+        ),
+      ),
+    );
+  }
+
+  AnimatedOpacity buildBeer() {
+    HapticFeedback.heavyImpact();
+
+    return AnimatedOpacity(
+      opacity: 1.0,
+      duration: const Duration(milliseconds: 500),
+      onEnd: () => participantRef!.update({'shakeCount': 0}),
+      child: const Center(
+        child: Text(
+          '🍺',
+          style: TextStyle(fontSize: 80.0),
+        ),
+      ),
+    );
+  }
 }

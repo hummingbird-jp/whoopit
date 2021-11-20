@@ -60,7 +60,10 @@ class _RoomPageState extends State<RoomPage> {
   void initState() {
     super.initState();
     _initAgora();
-    _shakeDetector = ShakeDetector.autoStart(onPhoneShake: _onShake);
+    _shakeDetector = ShakeDetector.autoStart(
+      onPhoneShake: _onShake,
+      shakeCountResetTime: 2000,
+    );
   }
 
   @override
@@ -180,7 +183,7 @@ class _RoomPageState extends State<RoomPage> {
                         final String? name = data['name'] as String;
                         final String photoUrl = data['photoUrl'] as String;
                         final bool isMuted = data['isMuted'] as bool;
-                        final bool isShaking = data['isShaking'] as bool;
+                        final int shakeCount = data['shakeCount'] as int;
                         final bool isClapping = data['isClapping'] as bool;
 
                         return Column(
@@ -189,7 +192,7 @@ class _RoomPageState extends State<RoomPage> {
                               photoUrl: photoUrl,
                               name: name,
                               isMuted: isMuted,
-                              isShaking: isShaking,
+                              shakeCount: shakeCount,
                               isClapping: isClapping,
                             ),
                           ],
@@ -368,25 +371,10 @@ class _RoomPageState extends State<RoomPage> {
   }
 
   Future<void> _onShake() async {
-    log('_shakeDetector.count: ${_shakeDetector.mShakeCount}');
+    int _shakeCount = _shakeDetector.mShakeCount;
 
-    if (_isMeShaking == true) {
-      return;
-    } else if (_shakeDetector.mShakeCount == 3) {
-      setState(() {
-        _isMeShaking = true;
-      });
-
-      _myParticipantRef.update({'isShaking': true});
-      HapticFeedback.lightImpact();
-    }
-
-    Future.delayed(const Duration(milliseconds: 8000), () async {
-      setState(() {
-        _isMeShaking = false;
-      });
-      _myParticipantRef.update({'isShaking': false});
-    });
+    log('_shakeCount: $_shakeCount');
+    _myParticipantRef.update({'shakeCount': _shakeCount});
   }
 
   Future<void> _onClap() async {
@@ -433,7 +421,7 @@ class _RoomPageState extends State<RoomPage> {
       'name': _me.name,
       'photoUrl': _me.photoUrl,
       'isMuted': _me.isMuted,
-      'isShaking': false,
+      'shakeCount': 0,
       'isClapping': false,
     });
 
