@@ -51,7 +51,6 @@ class _RoomPageState extends State<RoomPage> {
   late ShakeDetector _shakeDetector;
 
   bool _isMeMuted = true;
-  bool _isMeShaking = false;
   bool _isMeClapping = false;
 
   bool _isMeJoinInProgress = false;

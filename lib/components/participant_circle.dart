@@ -1,24 +1,28 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class ParticipantCircle extends StatelessWidget {
   const ParticipantCircle({
     Key? key,
+    this.participantRef,
     required this.photoUrl,
-    required this.name,
-    required this.isMuted,
-    required this.isShaking,
-    required this.isClapping,
+    this.name,
+    this.isMuted,
+    this.shakeCount,
+    this.isClapping,
     this.size = 50,
   }) : super(key: key);
 
+  final DocumentReference? participantRef;
   final double size;
   final String photoUrl;
   final String? name;
-  final bool isMuted;
-  final bool isShaking;
-  final bool isClapping;
+  final bool? isMuted;
+  final int? shakeCount;
+  final bool? isClapping;
 
   @override
   Widget build(BuildContext context) {
@@ -44,7 +48,7 @@ class ParticipantCircle extends StatelessWidget {
             child: Stack(
               children: [
                 Visibility(
-                  visible: isMuted,
+                  visible: isMuted ?? false,
                   child: Container(
                     color:
                         Theme.of(context).colorScheme.primary.withOpacity(0.8),
@@ -56,17 +60,11 @@ class ParticipantCircle extends StatelessWidget {
                     ),
                   ),
                 ),
+                if (shakeCount != null && shakeCount! >= 10) buildBoom(),
+                if (shakeCount != null && shakeCount! >= 3 && shakeCount! < 10)
+                  buildBeer(),
                 Visibility(
-                  visible: isShaking,
-                  child: const Center(
-                    child: Text(
-                      '🍺',
-                      style: TextStyle(fontSize: 80.0),
-                    ),
-                  ),
-                ),
-                Visibility(
-                  visible: isClapping,
+                  visible: isClapping ?? false,
                   child: const Center(
                     child: Text(
                       '👏',
