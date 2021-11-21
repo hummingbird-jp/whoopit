@@ -119,30 +119,10 @@ class _TabsPageState extends State<HomePage> {
                   ),
                 ),
               ),
-              Visibility(
-                visible: authModel.isSignedIn,
-                child: SizedBox(
-                  height: 48,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        'What\'s Whoopit?',
-                        style: TextStyle(
-                          color: Colors.white.withOpacity(0.5),
-                        ),
-                      ),
-                      Icon(
-                        CupertinoIcons.right_chevron,
-                        color: Colors.white.withOpacity(0.5),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              !authModel.isSignedIn
-                  ? const SigninButton()
-                  : buildRoomTileList(),
+              if (!authModel.isSignedIn)
+                const SigninButton()
+              else
+                buildRoomTileList(),
             ],
           ),
         ),
