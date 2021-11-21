@@ -14,6 +14,7 @@ class ParticipantCircle extends StatelessWidget {
     this.shakeCount,
     this.isClapping,
     this.size = 50,
+    this.gifUrl,
   }) : super(key: key);
 
   final DocumentReference? participantRef;
@@ -23,6 +24,7 @@ class ParticipantCircle extends StatelessWidget {
   final bool? isMuted;
   final int? shakeCount;
   final bool? isClapping;
+  final String? gifUrl;
 
   @override
   Widget build(BuildContext context) {
@@ -47,6 +49,15 @@ class ParticipantCircle extends StatelessWidget {
             height: 100.0,
             child: Stack(
               children: [
+                if (gifUrl != null)
+                  Center(
+                    child: Image.network(
+                      gifUrl as String,
+                      headers: const {'accept': 'image/*'},
+                      height: 100,
+                      fit: BoxFit.cover,
+                    ),
+                  ),
                 Visibility(
                   visible: isMuted ?? false,
                   child: Container(

@@ -8,6 +8,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:giphy_get/giphy_get.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:rounded_loading_button/rounded_loading_button.dart';
 import 'package:shake/shake.dart';
@@ -185,17 +186,44 @@ class _RoomPageState extends State<RoomPage> {
                         final bool isMuted = data['isMuted'] as bool;
                         final int shakeCount = data['shakeCount'] as int;
                         final bool isClapping = data['isClapping'] as bool;
+                        final bool isMe =
+                            data['firebaseUid'] == _me.firebaseUid;
+                        String? currentGifUrl = data['gifUrl'] as String?;
 
-                        return Column(
-                          children: [
-                            ParticipantCircle(
-                              photoUrl: photoUrl,
-                              name: name,
-                              isMuted: isMuted,
-                              shakeCount: shakeCount,
-                              isClapping: isClapping,
-                            ),
-                          ],
+                        return GestureDetector(
+                          onTap: () async {
+                            if (isMe) {
+                              if (currentGifUrl == null) {
+                                GiphyGif? _newGif = await GiphyGet.getGif(
+                                  context: context,
+                                  apiKey: 'zS43gpI1tyh32oBapKuwt7vNXz7PMoOe',
+                                  lang: GiphyLanguage.english,
+                                  tabColor:
+                                      Theme.of(context).colorScheme.primary,
+                                );
+                                currentGifUrl =
+                                    _newGif!.images!.original!.webp as String;
+
+                                _myParticipantRef.update({
+                                  'gifUrl': currentGifUrl,
+                                });
+                              } else {
+                                _myParticipantRef.update({
+                                  'gifUrl': null,
+                                });
+                              }
+                            } else {
+                              log('Ignored because it\'s not you');
+                            }
+                          },
+                          child: ParticipantCircle(
+                            photoUrl: photoUrl,
+                            name: name,
+                            isMuted: isMuted,
+                            shakeCount: shakeCount,
+                            isClapping: isClapping,
+                            gifUrl: currentGifUrl,
+                          ),
                         );
                       }).toList(),
                     ),
