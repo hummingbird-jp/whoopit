@@ -149,9 +149,9 @@ class _RoomPageState extends State<RoomPage> {
                     return const Text('Something went wrong');
                   }
 
-                  Map<String, dynamic> data =
-                      snapshot.data!.data() as Map<String, dynamic>;
-                  return Text(data['roomName'] as String);
+                  Map<String, dynamic>? data =
+                      snapshot.data!.data() as Map<String, dynamic>?;
+                  return Text(data?['roomName'] as String? ?? roomId);
                 }),
           ),
         ),
@@ -189,6 +189,7 @@ class _RoomPageState extends State<RoomPage> {
                         final bool isMe =
                             data['firebaseUid'] == _me.firebaseUid;
                         String? currentGifUrl = data['gifUrl'] as String?;
+                        final bool isJoined = data['isJoined'] as bool;
 
                         return GestureDetector(
                           onTap: () async {
@@ -223,6 +224,7 @@ class _RoomPageState extends State<RoomPage> {
                             shakeCount: shakeCount,
                             isClapping: isClapping,
                             gifUrl: currentGifUrl,
+                            isJoined: isJoined,
                           ),
                         );
                       }).toList(),
@@ -458,6 +460,7 @@ class _RoomPageState extends State<RoomPage> {
       'isMuted': _me.isMuted,
       'shakeCount': 0,
       'isClapping': false,
+      'isJoined': true
     });
 
     setState(() {
@@ -470,7 +473,9 @@ class _RoomPageState extends State<RoomPage> {
       _isMeLeaveInProgress = true;
     });
 
-    _myParticipantRef.delete();
+    _myParticipantRef.update({
+      'isJoined': false,
+    });
 
     HapticFeedback.lightImpact();
 

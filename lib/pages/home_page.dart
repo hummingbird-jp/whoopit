@@ -130,37 +130,64 @@ class _TabsPageState extends State<HomePage> {
     );
   }
 
-  Wrap buildRoomTileList() {
-    CollectionReference<Map<String, dynamic>> roomsRef =
+  StreamBuilder<QuerySnapshot> buildRoomTileList() {
+    final CollectionReference<Map<String, dynamic>> _roomsCollection =
         FirebaseFirestore.instance.collection('rooms');
+    final Stream<QuerySnapshot> _roomsStream = _roomsCollection.snapshots();
 
-    return Wrap(
-      alignment: WrapAlignment.center,
-      spacing: 20.0,
-      runSpacing: 20.0,
-      children: [
-        buildRoomTile(roomsRef, 'roomA', 'Room A'),
-        buildRoomTile(roomsRef, 'roomB', 'Room B'),
-        buildRoomTile(roomsRef, _getRandomString(10), 'Create'),
-        ClipRRect(
-          borderRadius: BorderRadius.circular(20.0),
-          child: Container(
-            width: 160.0,
-            height: 160.0,
-            color: Colors.transparent,
-          ),
-        ),
-      ],
-    );
+    return StreamBuilder<QuerySnapshot>(
+        stream: _roomsStream,
+        builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            return Center(
+              child: Text('Error: ${snapshot.error}'),
+            );
+          }
+
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(
+              child: CircularProgressIndicator(),
+            );
+          }
+
+          return Column(
+            children: [
+              Wrap(
+                alignment: WrapAlignment.center,
+                spacing: 20.0,
+                runSpacing: 20.0,
+                children: snapshot.data!.docs.map((doc) {
+                  final Map<String, dynamic> data =
+                      doc.data() as Map<String, dynamic>;
+                  final String _roomId = doc.id;
+                  final String _roomName = data['roomName'] as String;
+
+                  return buildRoomTile(_roomsCollection, _roomId, _roomName);
+                }).toList(),
+              ),
+              const SizedBox(height: 20.0),
+              CupertinoButton(
+                color: Colors.white.withOpacity(0.07),
+                child: Icon(
+                  CupertinoIcons.add,
+                  color: Colors.white.withOpacity(0.5),
+                ),
+                onPressed: () {
+                  _onCreateRoom(_getRandomString(15));
+                },
+              ),
+            ],
+          );
+        });
   }
 
   Widget buildRoomTile(
-    CollectionReference<Map<String, dynamic>> roomsRef,
+    CollectionReference<Map<String, dynamic>> roomsCollection,
     String roomId,
     String roomName,
   ) {
     final Stream<QuerySnapshot> _participantsStream =
-        roomsRef.doc(roomId).collection('participants').snapshots();
+        roomsCollection.doc(roomId).collection('participants').snapshots();
 
     return GestureDetector(
       onTap: () => _onJoin(roomId),
@@ -210,10 +237,12 @@ class _TabsPageState extends State<HomePage> {
                             final Map<String, dynamic> data =
                                 doc.data() as Map<String, dynamic>;
                             final String photoUrl = data['photoUrl'] as String;
+                            final bool isJoined = data['isJoined'] as bool;
 
                             return ParticipantCircle(
                               photoUrl: photoUrl,
                               size: 20,
+                              isJoined: isJoined,
                             );
                           }).toList(),
                         ),
@@ -227,6 +256,20 @@ class _TabsPageState extends State<HomePage> {
         ),
       ),
     );
+  }
+
+  void _onCreateRoom(String newChannelName) {
+    roomId = newChannelName;
+    HapticFeedback.heavyImpact();
+
+    final CollectionReference<Map<String, dynamic>> _roomsCollection =
+        FirebaseFirestore.instance.collection('rooms');
+    _roomsCollection.doc(newChannelName).set(<String, dynamic>{
+      'roomName': newChannelName,
+      'createdAt': Timestamp.now(),
+    });
+
+    _onJoin(newChannelName);
   }
 
   void _onJoin(String newChannelName) {
