@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:developer';
 
 import 'package:agora_rtc_engine/rtc_engine.dart';
+import 'package:audioplayers/audioplayers.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -61,6 +62,10 @@ class _RoomPageState extends State<RoomPage> {
   bool _isMeJoinInProgress = false;
   bool _isMeLeaveInProgress = false;
 
+  // Sounds
+  final AudioPlayer _advancedPlayer = AudioPlayer(mode: PlayerMode.LOW_LATENCY);
+  late final AudioCache _audioCache;
+
   @override
   void initState() {
     super.initState();
@@ -68,6 +73,10 @@ class _RoomPageState extends State<RoomPage> {
     _shakeDetector = ShakeDetector.autoStart(
       onPhoneShake: _onShake,
       shakeCountResetTime: 2000,
+    );
+    _audioCache = AudioCache(
+      prefix: 'assets/sounds/',
+      fixedPlayer: _advancedPlayer,
     );
   }
 
@@ -82,282 +91,318 @@ class _RoomPageState extends State<RoomPage> {
 
     return WillPopScope(
       onWillPop: () async => false,
-      child: Scaffold(
-        appBar: AppBar(
-          automaticallyImplyLeading: false,
-          title: GestureDetector(
-            onTap: () {
-              // TODO: Show cupertino dialog which accepts user input
-              // and updates the room name
-              GlobalKey<FormState> _formKey = GlobalKey<FormState>();
+      child: StreamBuilder<QuerySnapshot>(
+          stream: _shakersStream,
+          builder: (context, snapshot) {
+            if (snapshot.hasData && snapshot.data!.docs.length >= 2) {
+              _audioCache.play('soda.wav', volume: 0.05);
+            }
 
-              showCupertinoDialog<void>(
-                  context: context,
-                  builder: (context) => CupertinoAlertDialog(
-                        title: const Text('New Room Name'),
-                        content: Form(
-                          key: _formKey,
-                          child: CupertinoTextFormFieldRow(
-                            autofocus: true,
-                            autocorrect: false,
-                            autovalidateMode:
-                                AutovalidateMode.onUserInteraction,
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Cannot be blank';
-                              }
-                              if (value.length > 20) {
-                                return 'Must be less than 20 characters';
-                              }
-                              if (value.contains(RegExp(r'[^a-zA-Z0-9]'))) {
-                                return 'Must contain only letters and numbers';
-                              }
-                              return null;
-                            },
-                            style: TextStyle(
-                                color: Theme.of(context).colorScheme.onPrimary),
-                            onSaved: (value) {
-                              log('onSaved');
+            return Scaffold(
+              appBar: AppBar(
+                backgroundColor:
+                    snapshot.hasData && snapshot.data!.docs.length >= 2
+                        ? Theme.of(context).colorScheme.secondary
+                        : Theme.of(context).colorScheme.background,
+                automaticallyImplyLeading: false,
+                title: GestureDetector(
+                  onTap: () {
+                    // TODO: Show cupertino dialog which accepts user input
+                    // and updates the room name
+                    GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
-                              _roomsCollection
-                                  .doc(roomId)
-                                  .update({'roomName': value});
-                            },
-                          ),
-                        ),
-                        actions: <Widget>[
-                          CupertinoDialogAction(
-                            isDestructiveAction: true,
-                            child: const Text('Cancel'),
-                            onPressed: () => Navigator.pop(context),
-                          ),
-                          CupertinoDialogAction(
-                            isDefaultAction: true,
-                            child: const Text('Save'),
-                            onPressed: () {
-                              if (_formKey.currentState!.validate()) {
-                                _formKey.currentState!.save();
-                                Navigator.pop(context);
-                              }
-                            },
-                          ),
-                        ],
-                      ));
-            },
-            child: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
-                stream: _roomStream,
-                builder: (context, snapshot) {
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Text('Loading...');
-                  }
+                    showCupertinoDialog<void>(
+                        context: context,
+                        builder: (context) => CupertinoAlertDialog(
+                              title: const Text('New Room Name'),
+                              content: Form(
+                                key: _formKey,
+                                child: CupertinoTextFormFieldRow(
+                                  autofocus: true,
+                                  autocorrect: false,
+                                  autovalidateMode:
+                                      AutovalidateMode.onUserInteraction,
+                                  validator: (value) {
+                                    if (value == null || value.isEmpty) {
+                                      return 'Cannot be blank';
+                                    }
+                                    if (value.length > 20) {
+                                      return 'Must be less than 20 characters';
+                                    }
+                                    if (value
+                                        .contains(RegExp(r'[^a-zA-Z0-9]'))) {
+                                      return 'Must contain only letters and numbers';
+                                    }
+                                    return null;
+                                  },
+                                  style: TextStyle(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onPrimary),
+                                  onSaved: (value) {
+                                    log('onSaved');
 
-                  if (snapshot.hasError || !snapshot.hasData) {
-                    return const Text('Something went wrong');
-                  }
-
-                  Map<String, dynamic>? data = snapshot.data!.data();
-                  return Text(data?['roomName'] as String? ?? roomId);
-                }),
-          ),
-        ),
-        backgroundColor: Theme.of(context).colorScheme.background,
-        body: SafeArea(
-          child: Stack(
-            children: [
-              StreamBuilder<QuerySnapshot>(
-                stream: _participantsStream,
-                builder: (context, snapshot) {
-                  if (snapshot.hasError) {
-                    return const Text('Something went wrong');
-                  }
-
-                  if (snapshot.connectionState == ConnectionState.waiting) {
-                    return const Center(
-                      child: CupertinoActivityIndicator(),
-                    );
-                  }
-
-                  return Center(
-                    child: Wrap(
-                      alignment: WrapAlignment.spaceBetween,
-                      direction: Axis.horizontal,
-                      spacing: 20,
-                      runSpacing: 40,
-                      children: snapshot.data!.docs.map((doc) {
-                        final Map<String, dynamic> data =
-                            doc.data() as Map<String, dynamic>;
-                        final String? name = data['name'] as String;
-                        final String photoUrl = data['photoUrl'] as String;
-                        final bool isMuted = data['isMuted'] as bool;
-                        final int shakeCount = data['shakeCount'] as int;
-                        final bool isClapping = data['isClapping'] as bool;
-                        final bool isMe =
-                            data['firebaseUid'] == _me.firebaseUid;
-                        String? currentGifUrl = data['gifUrl'] as String?;
-                        final bool isJoined = data['isJoined'] as bool;
-
-                        return GestureDetector(
-                          onTap: () async {
-                            if (isMe) {
-                              if (currentGifUrl == null) {
-                                GiphyGif? _newGif = await GiphyGet.getGif(
-                                  context: context,
-                                  apiKey: 'zS43gpI1tyh32oBapKuwt7vNXz7PMoOe',
-                                  lang: GiphyLanguage.english,
-                                  tabColor:
-                                      Theme.of(context).colorScheme.primary,
-                                );
-                                currentGifUrl =
-                                    _newGif!.images!.original!.webp as String;
-
-                                _myParticipantDocument.update({
-                                  'gifUrl': currentGifUrl,
-                                });
-                              } else {
-                                _myParticipantDocument.update({
-                                  'gifUrl': null,
-                                });
-                              }
-                            } else {
-                              log('Ignored because it\'s not you');
-                            }
-                          },
-                          child: ParticipantCircle(
-                            photoUrl: photoUrl,
-                            name: name,
-                            isMuted: isMuted,
-                            shakeCount: shakeCount,
-                            isClapping: isClapping,
-                            gifUrl: currentGifUrl,
-                            isJoined: isJoined,
-                          ),
-                        );
-                      }).toList(),
-                    ),
-                  );
-                },
-              ),
-              Align(
-                alignment: const Alignment(0.00, 0.60),
-                child: CupertinoButton.filled(
-                  child: const Text('Share to friends!'),
-                  onPressed: () {
-                    Clipboard.setData(ClipboardData(text: roomId));
-                    Share.share(roomId);
+                                    _roomsCollection
+                                        .doc(roomId)
+                                        .update({'roomName': value});
+                                  },
+                                ),
+                              ),
+                              actions: <Widget>[
+                                CupertinoDialogAction(
+                                  isDestructiveAction: true,
+                                  child: const Text('Cancel'),
+                                  onPressed: () => Navigator.pop(context),
+                                ),
+                                CupertinoDialogAction(
+                                  isDefaultAction: true,
+                                  child: const Text('Save'),
+                                  onPressed: () {
+                                    if (_formKey.currentState!.validate()) {
+                                      _formKey.currentState!.save();
+                                      Navigator.pop(context);
+                                    }
+                                  },
+                                ),
+                              ],
+                            ));
                   },
+                  child: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
+                      stream: _roomStream,
+                      builder: (context, snapshot) {
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return const Text('Loading...');
+                        }
+
+                        if (snapshot.hasError || !snapshot.hasData) {
+                          return const Text('Something went wrong');
+                        }
+
+                        Map<String, dynamic>? data = snapshot.data!.data();
+                        return Text(data?['roomName'] as String? ?? roomId);
+                      }),
                 ),
               ),
-              Positioned(
-                bottom: 0,
-                child: SizedBox(
-                  width: MediaQuery.of(context).size.width,
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      ElevatedButton(
-                        style: ButtonStyle(
-                          backgroundColor: MaterialStateProperty.all<Color>(
-                            Theme.of(context).colorScheme.primary,
+              backgroundColor:
+                  snapshot.hasData && snapshot.data!.docs.length >= 2
+                      ? Theme.of(context).colorScheme.secondary
+                      : Theme.of(context).colorScheme.background,
+              body: SafeArea(
+                child: Stack(
+                  children: [
+                    StreamBuilder<QuerySnapshot>(
+                      stream: _participantsStream,
+                      builder: (context, snapshot) {
+                        if (snapshot.hasError) {
+                          return const Text('Something went wrong');
+                        }
+
+                        if (snapshot.connectionState ==
+                            ConnectionState.waiting) {
+                          return const Center(
+                            child: CupertinoActivityIndicator(),
+                          );
+                        }
+
+                        return Center(
+                          child: Wrap(
+                            alignment: WrapAlignment.spaceBetween,
+                            direction: Axis.horizontal,
+                            spacing: 20,
+                            runSpacing: 40,
+                            children: snapshot.data!.docs.map((doc) {
+                              final Map<String, dynamic> data =
+                                  doc.data() as Map<String, dynamic>;
+                              final String? name = data['name'] as String;
+                              final String photoUrl =
+                                  data['photoUrl'] as String;
+                              final bool isMuted = data['isMuted'] as bool;
+                              final int shakeCount = data['shakeCount'] as int;
+                              final bool isClapping =
+                                  data['isClapping'] as bool;
+                              final bool isMe =
+                                  data['firebaseUid'] == _me.firebaseUid;
+                              String? currentGifUrl = data['gifUrl'] as String?;
+                              final bool isJoined = data['isJoined'] as bool;
+
+                              return GestureDetector(
+                                onTap: () async {
+                                  if (isMe) {
+                                    if (currentGifUrl == null) {
+                                      GiphyGif? _newGif = await GiphyGet.getGif(
+                                        context: context,
+                                        apiKey:
+                                            'zS43gpI1tyh32oBapKuwt7vNXz7PMoOe',
+                                        lang: GiphyLanguage.english,
+                                        tabColor: Theme.of(context)
+                                            .colorScheme
+                                            .primary,
+                                      );
+                                      currentGifUrl = _newGif!
+                                          .images!.original!.webp as String;
+
+                                      _myParticipantDocument.update({
+                                        'gifUrl': currentGifUrl,
+                                      });
+                                    } else {
+                                      _myParticipantDocument.update({
+                                        'gifUrl': null,
+                                      });
+                                    }
+                                  } else {
+                                    log('Ignored because it\'s not you');
+                                  }
+                                },
+                                child: ParticipantCircle(
+                                  photoUrl: photoUrl,
+                                  name: name,
+                                  isMuted: isMuted,
+                                  shakeCount: shakeCount,
+                                  isClapping: isClapping,
+                                  gifUrl: currentGifUrl,
+                                  isJoined: isJoined,
+                                ),
+                              );
+                            }).toList(),
                           ),
-                          shape: MaterialStateProperty.all(
-                            RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(20),
-                              side: BorderSide(
-                                color: Theme.of(context).colorScheme.primary,
-                              ),
-                            ),
-                          ),
-                        ),
-                        child: const Text('👋 Leave'),
-                        onPressed: _onLeave,
+                        );
+                      },
+                    ),
+                    Align(
+                      alignment: const Alignment(0.00, 0.60),
+                      child: CupertinoButton.filled(
+                        child: const Text('Share to friends!'),
+                        onPressed: () {
+                          Clipboard.setData(ClipboardData(text: roomId));
+                          Share.share(roomId);
+                        },
                       ),
-                      ElevatedButton(
-                        style: ButtonStyle(
-                          backgroundColor: MaterialStateProperty.all<Color>(
-                            Theme.of(context).colorScheme.primary,
-                          ),
-                          shape: MaterialStateProperty.all(
-                            RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(30),
-                              side: BorderSide(
-                                color: Theme.of(context).colorScheme.primary,
-                              ),
-                            ),
-                          ),
-                        ),
-                        child: const Text('👏'),
-                        onPressed: _isMeClapping ? null : _onClap,
-                      ),
-                      RoundedLoadingButton(
-                        controller: _muteButtonController,
-                        height: 36,
-                        width: 72,
-                        loaderStrokeWidth: 1.0,
-                        animateOnTap: true,
-                        resetDuration: const Duration(milliseconds: 1500),
-                        resetAfterDuration: true,
-                        successIcon: CupertinoIcons.mic_fill,
-                        failedIcon: CupertinoIcons.mic_off,
-                        successColor: Theme.of(context).colorScheme.primary,
-                        errorColor: const Color(0xFFFF2D34),
-                        color: _isMeMuted
-                            ? const Color(0xFFFF2D34)
-                            : Theme.of(context).colorScheme.secondary,
+                    ),
+                    Positioned(
+                      bottom: 0,
+                      child: SizedBox(
+                        width: MediaQuery.of(context).size.width,
                         child: Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceAround,
                           children: [
-                            Icon(
-                              _isMeMuted
-                                  ? CupertinoIcons.mic_off
-                                  : CupertinoIcons.mic_fill,
-                              size: 12,
-                              color: _isMeMuted
-                                  ? Theme.of(context).colorScheme.secondary
-                                  : Theme.of(context).colorScheme.primary,
-                            ),
-                            Text(
-                              _isMeMuted ? 'Muted' : 'Unmuted',
-                              style: TextStyle(
-                                color: _isMeMuted
-                                    ? Theme.of(context).colorScheme.secondary
-                                    : Theme.of(context).colorScheme.primary,
+                            ElevatedButton(
+                              style: ButtonStyle(
+                                backgroundColor:
+                                    MaterialStateProperty.all<Color>(
+                                  Theme.of(context).colorScheme.primary,
+                                ),
+                                shape: MaterialStateProperty.all(
+                                  RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(20),
+                                    side: BorderSide(
+                                      color:
+                                          Theme.of(context).colorScheme.primary,
+                                    ),
+                                  ),
+                                ),
                               ),
+                              child: const Text('👋 Leave'),
+                              onPressed: _onLeave,
+                            ),
+                            ElevatedButton(
+                              style: ButtonStyle(
+                                backgroundColor:
+                                    MaterialStateProperty.all<Color>(
+                                  Theme.of(context).colorScheme.primary,
+                                ),
+                                shape: MaterialStateProperty.all(
+                                  RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(30),
+                                    side: BorderSide(
+                                      color:
+                                          Theme.of(context).colorScheme.primary,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              child: const Text('👏'),
+                              onPressed: _isMeClapping ? null : _onClap,
+                            ),
+                            RoundedLoadingButton(
+                              controller: _muteButtonController,
+                              height: 36,
+                              width: 72,
+                              loaderStrokeWidth: 1.0,
+                              animateOnTap: true,
+                              resetDuration: const Duration(milliseconds: 1500),
+                              resetAfterDuration: true,
+                              successIcon: CupertinoIcons.mic_fill,
+                              failedIcon: CupertinoIcons.mic_off,
+                              successColor:
+                                  Theme.of(context).colorScheme.primary,
+                              errorColor: const Color(0xFFFF2D34),
+                              color: _isMeMuted
+                                  ? const Color(0xFFFF2D34)
+                                  : Theme.of(context).colorScheme.secondary,
+                              child: Row(
+                                children: [
+                                  Icon(
+                                    _isMeMuted
+                                        ? CupertinoIcons.mic_off
+                                        : CupertinoIcons.mic_fill,
+                                    size: 12,
+                                    color: _isMeMuted
+                                        ? Theme.of(context)
+                                            .colorScheme
+                                            .secondary
+                                        : Theme.of(context).colorScheme.primary,
+                                  ),
+                                  Text(
+                                    _isMeMuted ? 'Muted' : 'Unmuted',
+                                    style: TextStyle(
+                                      color: _isMeMuted
+                                          ? Theme.of(context)
+                                              .colorScheme
+                                              .secondary
+                                          : Theme.of(context)
+                                              .colorScheme
+                                              .primary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              onPressed: _onMute,
                             ),
                           ],
                         ),
-                        onPressed: _onMute,
                       ),
-                    ],
-                  ),
-                ),
-              ),
-              StreamBuilder<QuerySnapshot>(
-                stream: _shakersStream,
-                builder: (context, snapshot) {
-                  return Visibility(
-                    visible:
-                        snapshot.hasData && snapshot.data!.docs.length >= 2,
-                    child: const Center(
-                      child: Text('🍻', style: TextStyle(fontSize: 300)),
                     ),
-                  );
-                },
-              ),
-              Visibility(
-                visible: _isMeJoinInProgress || _isMeLeaveInProgress,
-                child: Opacity(
-                  opacity: 0.8,
-                  child: Container(
-                    width: double.infinity,
-                    height: double.infinity,
-                    color: Theme.of(context).colorScheme.background,
-                    child: const Center(child: CupertinoActivityIndicator()),
-                  ),
+                    StreamBuilder<QuerySnapshot>(
+                      stream: _shakersStream,
+                      builder: (context, snapshot) {
+                        return Visibility(
+                          visible: snapshot.hasData &&
+                              snapshot.data!.docs.length >= 2,
+                          child: const Center(
+                            child: Text('🍻', style: TextStyle(fontSize: 300)),
+                          ),
+                        );
+                      },
+                    ),
+                    Visibility(
+                      visible: _isMeJoinInProgress || _isMeLeaveInProgress,
+                      child: Opacity(
+                        opacity: 0.8,
+                        child: Container(
+                          width: double.infinity,
+                          height: double.infinity,
+                          color: Theme.of(context).colorScheme.background,
+                          child:
+                              const Center(child: CupertinoActivityIndicator()),
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
               ),
-            ],
-          ),
-        ),
-      ),
+            );
+          }),
     );
   }
 
