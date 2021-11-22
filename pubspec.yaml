@@ -8,6 +8,7 @@ environment:
 
 dependencies:
   agora_rtc_engine: ^4.0.7
+  audioplayers: ^0.20.1
   cached_network_image: ^3.1.0+1
   cloud_firestore: ^2.5.3
   cloud_functions: ^3.0.4
@@ -46,3 +47,5 @@ flutter_icons:
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/sounds/
