@@ -18,6 +18,7 @@ import 'package:whoopit/components/participant_circle.dart';
 
 late String token;
 late String roomId;
+bool isPlayingSound = false;
 
 class RoomPage extends StatefulWidget {
   const RoomPage({Key? key}) : super(key: key);
@@ -94,8 +95,12 @@ class _RoomPageState extends State<RoomPage> {
       child: StreamBuilder<QuerySnapshot>(
           stream: _shakersStream,
           builder: (context, snapshot) {
-            if (snapshot.hasData && snapshot.data!.docs.length >= 2) {
+            if (!isPlayingSound &&
+                snapshot.hasData &&
+                snapshot.data!.docs.length >= 2) {
+              isPlayingSound = true;
               _audioCache.play('soda.wav', volume: 0.05);
+              isPlayingSound = false;
             }
 
             return Scaffold(
