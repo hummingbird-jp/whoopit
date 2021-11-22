@@ -46,7 +46,11 @@ class _RoomPageState extends State<RoomPage> {
       .collection('participants');
   // Will be initialized after joining the channel
   final List<int> _remoteAgoraUids = [];
-  late final DocumentReference _myParticipantRef;
+  late final DocumentReference _myParticipantDocument;
+  final CollectionReference _shakersCollection = FirebaseFirestore.instance
+      .collection('rooms')
+      .doc(roomId)
+      .collection('shakers');
 
   late RtcEngine _rtcEngine;
   late ShakeDetector _shakeDetector;
@@ -73,6 +77,8 @@ class _RoomPageState extends State<RoomPage> {
         _roomsCollection.doc(roomId).snapshots();
     final Stream<QuerySnapshot> _participantsStream =
         _participantsCollection.snapshots();
+    final Stream<QuerySnapshot> _shakersStream =
+        _roomsCollection.doc(roomId).collection('shakers').snapshots();
 
     return WillPopScope(
       onWillPop: () async => false,
@@ -149,8 +155,7 @@ class _RoomPageState extends State<RoomPage> {
                     return const Text('Something went wrong');
                   }
 
-                  Map<String, dynamic>? data =
-                      snapshot.data!.data() as Map<String, dynamic>?;
+                  Map<String, dynamic>? data = snapshot.data!.data();
                   return Text(data?['roomName'] as String? ?? roomId);
                 }),
           ),
@@ -205,11 +210,11 @@ class _RoomPageState extends State<RoomPage> {
                                 currentGifUrl =
                                     _newGif!.images!.original!.webp as String;
 
-                                _myParticipantRef.update({
+                                _myParticipantDocument.update({
                                   'gifUrl': currentGifUrl,
                                 });
                               } else {
-                                _myParticipantRef.update({
+                                _myParticipantDocument.update({
                                   'gifUrl': null,
                                 });
                               }
@@ -325,6 +330,18 @@ class _RoomPageState extends State<RoomPage> {
                   ),
                 ),
               ),
+              StreamBuilder<QuerySnapshot>(
+                stream: _shakersStream,
+                builder: (context, snapshot) {
+                  return Visibility(
+                    visible:
+                        snapshot.hasData && snapshot.data!.docs.length >= 2,
+                    child: const Center(
+                      child: Text('🍻', style: TextStyle(fontSize: 300)),
+                    ),
+                  );
+                },
+              ),
               Visibility(
                 visible: _isMeJoinInProgress || _isMeLeaveInProgress,
                 child: Opacity(
@@ -382,7 +399,7 @@ class _RoomPageState extends State<RoomPage> {
   }
 
   Future<void> _onMute() async {
-    _myParticipantRef.update({
+    _myParticipantDocument.update({
       'isMuted': !_isMeMuted,
     });
 
@@ -410,14 +427,25 @@ class _RoomPageState extends State<RoomPage> {
     int _shakeCount = _shakeDetector.mShakeCount;
 
     log('_shakeCount: $_shakeCount');
-    _myParticipantRef.update({'shakeCount': _shakeCount});
+    _myParticipantDocument.update({'shakeCount': _shakeCount});
+
+    if (_shakeCount < 3) {
+      _shakersCollection.doc(_me.firebaseUid).delete();
+    }
+
+    if (_shakeCount >= 3 && _shakeCount < 10) {
+      _shakersCollection.doc(_me.firebaseUid).set(({
+            'shakeCount': _shakeCount,
+            'timestamp': Timestamp.now(),
+          }));
+    }
   }
 
   Future<void> _onClap() async {
     setState(() {
       _isMeClapping = true;
     });
-    _myParticipantRef.update({'isClapping': true});
+    _myParticipantDocument.update({'isClapping': true});
 
     HapticFeedback.lightImpact();
 
@@ -425,7 +453,7 @@ class _RoomPageState extends State<RoomPage> {
       setState(() {
         _isMeClapping = false;
       });
-      _myParticipantRef.update({'isClapping': false});
+      _myParticipantDocument.update({'isClapping': false});
     });
   }
 
@@ -450,7 +478,7 @@ class _RoomPageState extends State<RoomPage> {
       log('Failed to join a room: $e');
     }
 
-    _myParticipantRef = _participantsCollection.doc(_me.firebaseUid);
+    _myParticipantDocument = _participantsCollection.doc(_me.firebaseUid);
 
     await _participantsCollection.doc(_me.firebaseUid).set({
       'firebaseUid': _me.firebaseUid,
@@ -473,7 +501,7 @@ class _RoomPageState extends State<RoomPage> {
       _isMeLeaveInProgress = true;
     });
 
-    _myParticipantRef.update({
+    _myParticipantDocument.update({
       'isJoined': false,
     });
 
