@@ -15,6 +15,7 @@ class ParticipantCircle extends StatelessWidget {
     this.isClapping,
     this.size = 50,
     this.gifUrl,
+    required this.isJoined,
   }) : super(key: key);
 
   final DocumentReference? participantRef;
@@ -25,69 +26,77 @@ class ParticipantCircle extends StatelessWidget {
   final int? shakeCount;
   final bool? isClapping;
   final String? gifUrl;
+  final bool isJoined;
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        photoUrl != ''
-            ? CircleAvatar(
-                backgroundImage: CachedNetworkImageProvider(
-                  photoUrl,
-                ),
-                radius: size,
-              )
-            : Center(
-                child: Text(
-                  name ?? '',
-                ),
-              ),
-        ClipRRect(
-          borderRadius: BorderRadius.circular(50),
-          child: SizedBox(
-            width: 100.0,
-            height: 100.0,
-            child: Stack(
-              children: [
-                if (gifUrl != null)
-                  Center(
-                    child: Image.network(
-                      gifUrl as String,
-                      headers: const {'accept': 'image/*'},
-                      height: 100,
-                      fit: BoxFit.cover,
-                    ),
+    return Visibility(
+      visible: isJoined,
+      child: Stack(
+        children: [
+          photoUrl != ''
+              ? CircleAvatar(
+                  backgroundImage: CachedNetworkImageProvider(
+                    photoUrl,
                   ),
-                Visibility(
-                  visible: isMuted ?? false,
-                  child: Container(
-                    color:
-                        Theme.of(context).colorScheme.primary.withOpacity(0.8),
-                    child: Center(
-                      child: Icon(
-                        CupertinoIcons.mic_off,
-                        color: Theme.of(context).colorScheme.secondary,
+                  radius: size,
+                )
+              : Center(
+                  child: Text(
+                    name ?? '',
+                  ),
+                ),
+          ClipRRect(
+            borderRadius: BorderRadius.circular(50),
+            child: SizedBox(
+              width: 100.0,
+              height: 100.0,
+              child: Stack(
+                children: [
+                  if (gifUrl != null)
+                    Center(
+                      child: Image.network(
+                        gifUrl as String,
+                        headers: const {'accept': 'image/*'},
+                        height: 100,
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  Visibility(
+                    visible: isMuted ?? false,
+                    child: Container(
+                      color: Theme.of(context)
+                          .colorScheme
+                          .primary
+                          .withOpacity(0.8),
+                      child: Center(
+                        child: Icon(
+                          CupertinoIcons.mic_off,
+                          color: Theme.of(context).colorScheme.secondary,
+                        ),
                       ),
                     ),
                   ),
-                ),
-                if (shakeCount != null && shakeCount! >= 10) buildBoom(),
-                if (shakeCount != null && shakeCount! >= 3 && shakeCount! < 10)
-                  buildBeer(),
-                Visibility(
-                  visible: isClapping ?? false,
-                  child: const Center(
-                    child: Text(
-                      '👏',
-                      style: TextStyle(fontSize: 80.0),
+                  if (shakeCount != null && shakeCount! >= 10) buildBoom(),
+                  if (shakeCount != null &&
+                      shakeCount! >= 3 &&
+                      shakeCount! < 10)
+                    buildBeer(),
+                  Visibility(
+                    visible: isClapping ?? false,
+                    child: const Center(
+                      child: Text(
+                        '👏',
+                        style: TextStyle(fontSize: 80.0),
+                      ),
                     ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
