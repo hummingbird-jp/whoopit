@@ -463,9 +463,9 @@ class _RoomPageState extends State<RoomPage> {
     });
 
     if (_isMeMuted) {
-      _rtcEngine.disableAudio();
+      _rtcEngine.muteLocalAudioStream(true);
     } else {
-      _rtcEngine.enableAudio();
+      _rtcEngine.muteLocalAudioStream(false);
     }
 
     Timer(const Duration(milliseconds: 200), () {
@@ -533,7 +533,8 @@ class _RoomPageState extends State<RoomPage> {
     try {
       Future.wait([
         _rtcEngine.joinChannel(token, roomId, null, _me.agoraUid),
-        _rtcEngine.disableAudio(),
+        _rtcEngine.enableAudio(),
+        _rtcEngine.muteLocalAudioStream(true),
       ]);
     } catch (e) {
       log('Failed to join a room: $e');
