@@ -1,8 +1,10 @@
+import 'package:audioplayers/audioplayers.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:whoopit/pages/room_page.dart';
 
 class ParticipantCircle extends StatelessWidget {
   const ParticipantCircle({
@@ -103,10 +105,24 @@ class ParticipantCircle extends StatelessWidget {
   AnimatedOpacity buildBoom() {
     HapticFeedback.vibrate();
 
-    return const AnimatedOpacity(
+    final AudioPlayer _advancedPlayer =
+        AudioPlayer(mode: PlayerMode.LOW_LATENCY);
+    final AudioCache _audioCache = AudioCache(
+      prefix: 'assets/sounds/',
+      fixedPlayer: _advancedPlayer,
+    );
+
+    if (!isPlayingSound) {
+      isPlayingSound = true;
+      _audioCache.play('boom.wav', volume: 0.2);
+      isPlayingSound = false;
+    }
+
+    return AnimatedOpacity(
       opacity: 1.0,
-      duration: Duration(milliseconds: 500),
-      child: Center(
+      duration: const Duration(milliseconds: 500),
+      onEnd: () => participantRef!.update({'shakeCount': 0}),
+      child: const Center(
         child: Text(
           '💥',
           style: TextStyle(fontSize: 80.0),
@@ -116,8 +132,6 @@ class ParticipantCircle extends StatelessWidget {
   }
 
   AnimatedOpacity buildBeer() {
-    HapticFeedback.heavyImpact();
-
     return AnimatedOpacity(
       opacity: 1.0,
       duration: const Duration(milliseconds: 500),
