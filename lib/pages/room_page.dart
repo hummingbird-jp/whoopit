@@ -528,7 +528,7 @@ class _RoomPageState extends State<RoomPage> {
       fixedPlayer: _advancedPlayer,
     );
 
-    _bgmPlayer = await _audioCache.loop('jazz.mp3', volume: 0.05);
+    _bgmPlayer = await _audioCache.loop('jazz.mp3', volume: 0.02);
 
     try {
       Future.wait([
