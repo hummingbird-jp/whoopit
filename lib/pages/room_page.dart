@@ -67,6 +67,8 @@ class _RoomPageState extends State<RoomPage> {
   final AudioPlayer _advancedPlayer = AudioPlayer(mode: PlayerMode.LOW_LATENCY);
   late final AudioCache _audioCache;
 
+  late AudioPlayer _bgmPlayer;
+
   @override
   void initState() {
     super.initState();
@@ -474,9 +476,9 @@ class _RoomPageState extends State<RoomPage> {
   }
 
   Future<void> _onShake() async {
-    int _shakeCount = _shakeDetector.mShakeCount;
+    HapticFeedback.mediumImpact();
 
-    log('_shakeCount: $_shakeCount');
+    int _shakeCount = _shakeDetector.mShakeCount;
     _myParticipantDocument.update({'shakeCount': _shakeCount});
 
     if (_shakeCount < 3) {
@@ -519,6 +521,15 @@ class _RoomPageState extends State<RoomPage> {
       token = newToken;
     });
 
+    final AudioPlayer _advancedPlayer =
+        AudioPlayer(mode: PlayerMode.LOW_LATENCY);
+    final AudioCache _audioCache = AudioCache(
+      prefix: 'assets/sounds/',
+      fixedPlayer: _advancedPlayer,
+    );
+
+    _bgmPlayer = await _audioCache.loop('jazz.mp3', volume: 0.05);
+
     try {
       Future.wait([
         _rtcEngine.joinChannel(token, roomId, null, _me.agoraUid),
@@ -547,6 +558,8 @@ class _RoomPageState extends State<RoomPage> {
   }
 
   Future<void> _onLeave() async {
+    _bgmPlayer.stop();
+
     setState(() {
       _isMeLeaveInProgress = true;
     });
