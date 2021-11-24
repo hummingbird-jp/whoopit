@@ -1,4 +1,3 @@
-import 'dart:developer';
 import 'dart:math' as math;
 
 import 'package:cached_network_image/cached_network_image.dart';
@@ -258,29 +257,30 @@ class _TabsPageState extends State<HomePage> {
     );
   }
 
-  void _onCreateRoom(String newChannelName) {
-    roomId = newChannelName;
+  void _onCreateRoom(String newRoomId) {
+    String roomId = newRoomId;
     HapticFeedback.heavyImpact();
 
     final CollectionReference<Map<String, dynamic>> _roomsCollection =
         FirebaseFirestore.instance.collection('rooms');
-    _roomsCollection.doc(newChannelName).set(<String, dynamic>{
-      'roomName': newChannelName,
+    _roomsCollection.doc(roomId).set(<String, dynamic>{
+      'roomName': roomId,
       'createdAt': Timestamp.now(),
     });
 
-    _onJoin(newChannelName);
+    _onJoin(newRoomId);
   }
 
-  void _onJoin(String newChannelName) {
-    roomId = newChannelName;
+  void _onJoin(String newRoomId) {
+    String roomId = newRoomId;
     HapticFeedback.lightImpact();
-    log('channelName: $roomId');
 
     Navigator.push<Widget>(
       context,
       MaterialPageRoute(
-        builder: (context) => const RoomPage(),
+        builder: (context) => RoomPage(
+          roomId: roomId,
+        ),
       ),
     );
   }
