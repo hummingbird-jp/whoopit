@@ -1,13 +1,10 @@
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 ThemeData kThemeData = ThemeData(
   colorScheme: const ColorScheme(
     brightness: Brightness.dark,
     primary: Color(0xFF4642B3),
-    primaryVariant: Color(0xFF001A82),
     secondary: Color(0xFFFFCC4A),
-    secondaryVariant: Color(0xFFC89B0E),
     error: Color(0xFFFF2D34),
     surface: Color(0xFF000030),
     background: Color(0xFF000030),
