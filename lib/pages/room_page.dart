@@ -12,13 +12,13 @@ import 'package:flutter/services.dart';
 import 'package:giphy_get/giphy_get.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:shake/shake.dart';
+import 'package:whoopit/components/cheers.dart';
+import 'package:whoopit/components/full_screen_activity_indicator.dart';
 import 'package:whoopit/components/participant_circle.dart';
-import 'package:whoopit/models/cheers.dart';
-import 'package:whoopit/models/full_screen_activity_indicator.dart';
+import 'package:whoopit/components/pill_button.dart';
+import 'package:whoopit/components/room_name_dialog.dart';
+import 'package:whoopit/components/share_room_url_button.dart';
 import 'package:whoopit/models/participant.dart';
-import 'package:whoopit/models/pill_button.dart';
-import 'package:whoopit/models/room_name_dialog.dart';
-import 'package:whoopit/models/share_room_url_button.dart';
 
 class RoomPage extends StatefulWidget {
   const RoomPage({Key? key, required this.roomId}) : super(key: key);
@@ -97,7 +97,7 @@ class _RoomPageState extends State<RoomPage> {
       child: StreamBuilder<QuerySnapshot>(
         stream: _shakersStream,
         builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
+          if (!snapshot.hasData) {
             return const CupertinoActivityIndicator();
           }
 
@@ -113,7 +113,7 @@ class _RoomPageState extends State<RoomPage> {
                 child: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
                     stream: _roomStream,
                     builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
+                      if (!snapshot.hasData) {
                         return const CupertinoActivityIndicator();
                       }
 
@@ -131,7 +131,7 @@ class _RoomPageState extends State<RoomPage> {
                   StreamBuilder<QuerySnapshot>(
                     stream: _participantsStream,
                     builder: (context, snapshot) {
-                      if (snapshot.connectionState == ConnectionState.waiting) {
+                      if (!snapshot.hasData) {
                         return const CupertinoActivityIndicator();
                       }
 

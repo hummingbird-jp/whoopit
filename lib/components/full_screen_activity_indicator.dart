@@ -8,20 +8,18 @@ class FullScreenActivityIndicator extends StatelessWidget {
   })  : _isInProgress = isLoading,
         super(key: key);
 
-  //final bool _isMeJoinInProgress;
-  //final bool _isMeLeaveInProgress;
   final bool _isInProgress;
 
   @override
   Widget build(BuildContext context) {
     return Visibility(
       visible: _isInProgress,
-      child: Opacity(
-        opacity: 0.8,
+      child: IgnorePointer(
+        ignoring: _isInProgress,
         child: Container(
           width: double.infinity,
           height: double.infinity,
-          color: Theme.of(context).colorScheme.background,
+          color: Theme.of(context).colorScheme.background.withOpacity(0.9),
           child: const Center(
             child: CupertinoActivityIndicator(),
           ),
