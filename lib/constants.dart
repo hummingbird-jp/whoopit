@@ -4,7 +4,9 @@ ThemeData kThemeData = ThemeData(
   colorScheme: const ColorScheme(
     brightness: Brightness.dark,
     primary: Color(0xFF4642B3),
+    primaryVariant: Color(0xFF4642B3),
     secondary: Color(0xFFFFCC4A),
+    secondaryVariant: Color(0xFFFFCC4A),
     error: Color(0xFFFF2D34),
     surface: Color(0xFF000030),
     background: Color(0xFF000030),

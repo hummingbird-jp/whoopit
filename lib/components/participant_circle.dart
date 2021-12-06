@@ -40,11 +40,7 @@ class ParticipantCircle extends StatelessWidget {
                   ),
                   radius: size,
                 )
-              : Center(
-                  child: Text(
-                    name ?? '',
-                  ),
-                ),
+              : Icon(CupertinoIcons.person_circle, size: size * 2),
           ClipRRect(
             borderRadius: BorderRadius.circular(50),
             child: SizedBox(

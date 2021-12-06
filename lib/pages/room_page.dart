@@ -98,7 +98,12 @@ class _RoomPageState extends State<RoomPage> {
         stream: _shakersStream,
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
-            return const CupertinoActivityIndicator();
+            return Container(
+              width: double.infinity,
+              height: double.infinity,
+              color: Theme.of(context).colorScheme.background,
+              child: const CupertinoActivityIndicator(),
+            );
           }
 
           return Scaffold(
