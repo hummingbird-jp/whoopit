@@ -6,9 +6,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutterfire_ui/auth.dart';
-import 'package:flutterfire_ui/auth/google.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:whoopit/components/participant_circle.dart';
+import 'package:whoopit/constants.dart';
 import 'package:whoopit/states/authentication_state.dart';
 import 'package:whoopit/states/room_state.dart';
 
@@ -44,10 +44,7 @@ class HomePage extends HookConsumerWidget {
                           context,
                           MaterialPageRoute(
                             builder: (context) => const ProfileScreen(
-                              providerConfigs: [
-                                EmailProviderConfiguration(),
-                                GoogleProviderConfiguration(),
-                              ],
+                              providerConfigs: providerConfigs,
                             ),
                           ),
                         );

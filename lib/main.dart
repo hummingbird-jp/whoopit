@@ -7,7 +7,6 @@ import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutterfire_ui/auth.dart';
-import 'package:flutterfire_ui/auth/google.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:whoopit/constants.dart';
 import 'package:whoopit/pages/home_page.dart';
@@ -43,13 +42,18 @@ class Whoopit extends StatelessWidget {
         stream: FirebaseAuth.instance.authStateChanges(),
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
-            return const SignInScreen(
-              providerConfigs: [
-                EmailProviderConfiguration(),
-                GoogleProviderConfiguration(
-                  clientId: 'fir-flutter-codelab-32edb',
-                ),
-              ],
+            return SignInScreen(
+              headerMaxExtent: 200.0,
+              headerBuilder: (context, constraints, _) {
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  child: AspectRatio(
+                    aspectRatio: 1,
+                    child: Image.asset('assets/images/whoopit.png'),
+                  ),
+                );
+              },
+              providerConfigs: providerConfigs,
             );
           }
 
