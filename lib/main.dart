@@ -1,10 +1,13 @@
 import 'dart:async';
 
 import 'package:firebase_app_check/firebase_app_check.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:flutterfire_ui/auth.dart';
+import 'package:flutterfire_ui/auth/google.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:whoopit/constants.dart';
 import 'package:whoopit/pages/home_page.dart';
@@ -19,8 +22,9 @@ Future<void> main() async {
     );
     await FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(true);
     FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterError;
-    await FirebaseAppCheck.instance
-        .activate(webRecaptchaSiteKey: 'recaptcha-v3-site-key');
+    await FirebaseAppCheck.instance.activate(
+      webRecaptchaSiteKey: 'recaptcha-v3-site-key',
+    );
     runApp(
       ProviderScope(
         child: Whoopit(),
@@ -35,7 +39,23 @@ class Whoopit extends StatelessWidget {
     return CupertinoApp(
       title: 'Whoopit',
       theme: kThemeData,
-      home: const HomePage(),
+      home: StreamBuilder<User?>(
+        stream: FirebaseAuth.instance.authStateChanges(),
+        builder: (context, snapshot) {
+          if (!snapshot.hasData) {
+            return const SignInScreen(
+              providerConfigs: [
+                EmailProviderConfiguration(),
+                GoogleProviderConfiguration(
+                  clientId: 'fir-flutter-codelab-32edb',
+                ),
+              ],
+            );
+          }
+
+          return const HomePage();
+        },
+      ),
       localizationsDelegates: const [
         DefaultMaterialLocalizations.delegate,
         DefaultCupertinoLocalizations.delegate,

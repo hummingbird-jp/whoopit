@@ -5,12 +5,11 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutterfire_ui/auth.dart';
+import 'package:flutterfire_ui/auth/google.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:whoopit/components/participant_circle.dart';
-import 'package:whoopit/components/signin_button.dart';
-import 'package:whoopit/pages/profile_page.dart';
-import 'package:whoopit/pages/signin_page.dart';
-import 'package:whoopit/states/authentication.dart';
+import 'package:whoopit/states/authentication_state.dart';
 import 'package:whoopit/states/room_state.dart';
 
 import 'room_page.dart';
@@ -20,7 +19,7 @@ class HomePage extends HookConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final Authentication authModel = ref.watch(authProvider);
+    final AuthenticationState authModel = ref.watch(authProvider);
     final RoomState roomState = ref.watch(roomProvider);
 
     return WillPopScope(
@@ -32,61 +31,35 @@ class HomePage extends HookConsumerWidget {
             onTap: () {
               showCupertinoModalPopup<void>(
                 context: context,
-                builder: (context) => authModel.isSignedIn
-                    ? CupertinoActionSheet(
-                        message: Text(
-                          'You\'re signed in as ${authModel.displayName}',
-                        ),
-                        actions: [
-                          CupertinoActionSheetAction(
-                            isDestructiveAction: true,
-                            isDefaultAction: true,
-                            onPressed: () {
-                              authModel.signOut();
-                              Navigator.pop(context);
-                            },
-                            child: const Text('Sign Out'),
+                builder: (context) => CupertinoActionSheet(
+                  message: Text(
+                    'You\'re signed in as ${authModel.displayName}',
+                  ),
+                  actions: [
+                    CupertinoActionSheetAction(
+                      onPressed: () {
+                        HapticFeedback.lightImpact();
+                        Navigator.pop(context);
+                        Navigator.push<Widget>(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const ProfileScreen(
+                              providerConfigs: [
+                                EmailProviderConfiguration(),
+                                GoogleProviderConfiguration(),
+                              ],
+                            ),
                           ),
-                          CupertinoActionSheetAction(
-                            onPressed: () {
-                              HapticFeedback.lightImpact();
-                              Navigator.pop(context);
-                              Navigator.push<Widget>(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => ProfilePage(),
-                                ),
-                              );
-                            },
-                            child: const Text('Update Profile'),
-                          ),
-                        ],
-                        cancelButton: CupertinoActionSheetAction(
-                          child: const Text('Cancel'),
-                          onPressed: () => Navigator.pop(context),
-                        ),
-                      )
-                    : CupertinoActionSheet(
-                        actions: [
-                          CupertinoActionSheetAction(
-                            isDefaultAction: false,
-                            onPressed: () {
-                              Navigator.pop(context);
-                              Navigator.push<Widget>(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => SigninPage(),
-                                ),
-                              );
-                            },
-                            child: const Text('Sign In'),
-                          ),
-                        ],
-                        cancelButton: CupertinoActionSheetAction(
-                          child: const Text('Cancel'),
-                          onPressed: () => Navigator.pop(context),
-                        ),
-                      ),
+                        );
+                      },
+                      child: const Text('Settings'),
+                    ),
+                  ],
+                  cancelButton: CupertinoActionSheetAction(
+                    child: const Text('Cancel'),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ),
               );
             },
             child: authModel.photoUrl != null
@@ -115,10 +88,7 @@ class HomePage extends HookConsumerWidget {
                   ),
                 ),
               ),
-              if (!authModel.isSignedIn)
-                const SigninButton()
-              else
-                buildRoomTileList(roomState),
+              buildRoomTileList(roomState),
             ],
           ),
         ),
