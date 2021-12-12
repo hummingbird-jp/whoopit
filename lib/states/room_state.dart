@@ -5,7 +5,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:permission_handler/permission_handler.dart';
@@ -258,14 +257,14 @@ class RoomState extends ChangeNotifier {
     return result.data as String;
   }
 
-  void onRoomNameTapped(BuildContext context, RoomState roomState) {
+  void onRoomNameTapped(BuildContext context) {
     GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
     showCupertinoDialog<void>(
       context: context,
       builder: (context) => RoomNameDialog(
         formKey: _formKey,
-        roomsCollection: roomState.roomsCollection,
+        roomsCollection: _roomsCollection,
       ),
     );
   }

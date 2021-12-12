@@ -42,7 +42,7 @@ class HomePage extends HookConsumerWidget {
                         Navigator.pop(context);
                         Navigator.push<Widget>(
                           context,
-                          MaterialPageRoute(
+                          CupertinoPageRoute(
                             builder: (context) => const ProfileScreen(
                               providerConfigs: providerConfigs,
                             ),
@@ -257,7 +257,7 @@ class HomePage extends HookConsumerWidget {
     roomState.join();
     Navigator.push<Widget>(
       context,
-      MaterialPageRoute(
+      CupertinoPageRoute(
         builder: (context) => const RoomPage(),
       ),
     );

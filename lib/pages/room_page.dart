@@ -2,7 +2,6 @@ import 'dart:developer';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:giphy_get/giphy_get.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
@@ -42,10 +41,7 @@ class RoomPage extends HookConsumerWidget {
               //        : Theme.of(context).colorScheme.background,
               automaticallyImplyLeading: false,
               middle: GestureDetector(
-                onTap: () => roomState.onRoomNameTapped(
-                  context,
-                  roomState,
-                ),
+                onTap: () => roomState.onRoomNameTapped(context),
                 child: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
                     stream: roomState.roomStream,
                     builder: (context, snapshot) {
