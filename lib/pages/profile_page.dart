@@ -5,19 +5,18 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:whoopit/models/authentication.dart';
+import 'package:whoopit/states/authentication.dart';
 
-class ProfilePage extends HookWidget {
+class ProfilePage extends HookConsumerWidget {
   ProfilePage({Key? key}) : super(key: key);
 
   final TextEditingController _nameController = TextEditingController();
 
   @override
-  Widget build(BuildContext context) {
-    final Authentication authModel = useProvider(authProvider);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final Authentication authModel = ref.watch(authProvider);
 
     return Scaffold(
       appBar: AppBar(

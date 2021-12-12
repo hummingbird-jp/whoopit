@@ -19,7 +19,7 @@ class ParticipantCircle extends StatelessWidget {
 
   final DocumentReference? participantRef;
   final double size;
-  final String photoUrl;
+  final String? photoUrl;
   final String? name;
   final bool? isMuted;
   final int? shakeCount;
@@ -33,10 +33,10 @@ class ParticipantCircle extends StatelessWidget {
       visible: isJoined,
       child: Stack(
         children: [
-          photoUrl != ''
+          photoUrl != '' && photoUrl != null
               ? CircleAvatar(
                   backgroundImage: CachedNetworkImageProvider(
-                    photoUrl,
+                    photoUrl as String,
                   ),
                   radius: size,
                 )

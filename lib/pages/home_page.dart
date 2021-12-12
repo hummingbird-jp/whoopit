@@ -5,27 +5,23 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_hooks/flutter_hooks.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:whoopit/components/participant_circle.dart';
 import 'package:whoopit/components/signin_button.dart';
-import 'package:whoopit/models/authentication.dart';
 import 'package:whoopit/pages/profile_page.dart';
 import 'package:whoopit/pages/signin_page.dart';
+import 'package:whoopit/states/authentication.dart';
+import 'package:whoopit/states/room_state.dart';
 
 import 'room_page.dart';
 
-class HomePage extends StatefulHookWidget {
+class HomePage extends HookConsumerWidget {
   const HomePage({Key? key}) : super(key: key);
 
   @override
-  State<HomePage> createState() => _TabsPageState();
-}
-
-class _TabsPageState extends State<HomePage> {
-  @override
-  Widget build(BuildContext context) {
-    final Authentication authModel = useProvider(authProvider);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final Authentication authModel = ref.watch(authProvider);
+    final RoomState roomState = ref.watch(roomProvider);
 
     return WillPopScope(
       onWillPop: () async => false,
@@ -53,7 +49,16 @@ class _TabsPageState extends State<HomePage> {
                               child: const Text('Sign Out'),
                             ),
                             CupertinoActionSheetAction(
-                              onPressed: _onUpdateProfile,
+                              onPressed: () {
+                                HapticFeedback.lightImpact();
+                                Navigator.pop(context);
+                                Navigator.push<Widget>(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => ProfilePage(),
+                                  ),
+                                );
+                              },
                               child: const Text('Update Profile'),
                             ),
                           ],
@@ -120,7 +125,7 @@ class _TabsPageState extends State<HomePage> {
               if (!authModel.isSignedIn)
                 const SigninButton()
               else
-                buildRoomTileList(),
+                buildRoomTileList(roomState),
             ],
           ),
         ),
@@ -128,7 +133,7 @@ class _TabsPageState extends State<HomePage> {
     );
   }
 
-  StreamBuilder<QuerySnapshot> buildRoomTileList() {
+  StreamBuilder<QuerySnapshot> buildRoomTileList(RoomState roomState) {
     final CollectionReference<Map<String, dynamic>> _roomsCollection =
         FirebaseFirestore.instance.collection('rooms');
     final Stream<QuerySnapshot> _roomsStream = _roomsCollection.snapshots();
@@ -160,7 +165,13 @@ class _TabsPageState extends State<HomePage> {
                   final String _roomId = doc.id;
                   final String _roomName = data['roomName'] as String;
 
-                  return buildRoomTile(_roomsCollection, _roomId, _roomName);
+                  return buildRoomTile(
+                    context,
+                    roomState,
+                    _roomsCollection,
+                    _roomId,
+                    _roomName,
+                  );
                 }).toList(),
               ),
               const SizedBox(height: 20.0),
@@ -171,7 +182,7 @@ class _TabsPageState extends State<HomePage> {
                   color: Colors.white.withOpacity(0.5),
                 ),
                 onPressed: () {
-                  _onCreateRoom(_getRandomString(15));
+                  _onCreateRoom(context, roomState, _getRandomString(15));
                 },
               ),
             ],
@@ -180,6 +191,8 @@ class _TabsPageState extends State<HomePage> {
   }
 
   Widget buildRoomTile(
+    BuildContext context,
+    RoomState roomState,
     CollectionReference<Map<String, dynamic>> roomsCollection,
     String roomId,
     String roomName,
@@ -188,7 +201,7 @@ class _TabsPageState extends State<HomePage> {
         roomsCollection.doc(roomId).collection('participants').snapshots();
 
     return GestureDetector(
-      onTap: () => _onJoin(roomId),
+      onTap: () => _onJoin(context, roomState, roomId),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(20.0),
         child: Stack(
@@ -212,6 +225,7 @@ class _TabsPageState extends State<HomePage> {
                     ),
                   ),
                   StreamBuilder<QuerySnapshot>(
+                    // Cannot use participantStream in RoomState because it is not initialized at this point
                     stream: _participantsStream,
                     builder: (context, snapshot) {
                       if (snapshot.hasError) {
@@ -256,40 +270,36 @@ class _TabsPageState extends State<HomePage> {
     );
   }
 
-  void _onCreateRoom(String newRoomId) {
+  void _onCreateRoom(
+    BuildContext context,
+    RoomState roomState,
+    String newRoomId,
+  ) {
     String roomId = newRoomId;
     HapticFeedback.heavyImpact();
 
-    final CollectionReference<Map<String, dynamic>> _roomsCollection =
-        FirebaseFirestore.instance.collection('rooms');
-    _roomsCollection.doc(roomId).set(<String, dynamic>{
+    roomState.roomsCollection.doc(roomId).set(<String, dynamic>{
       'roomName': roomId,
       'createdAt': Timestamp.now(),
     });
 
-    _onJoin(newRoomId);
+    _onJoin(context, roomState, newRoomId);
   }
 
-  void _onJoin(String newRoomId) {
-    String roomId = newRoomId;
+  Future<void> _onJoin(
+    BuildContext context,
+    RoomState roomState,
+    String roomId,
+  ) async {
     HapticFeedback.lightImpact();
 
+    await roomState.init(roomId);
+    roomState.join();
     Navigator.push<Widget>(
       context,
       MaterialPageRoute(
-        builder: (context) => RoomPage(
-          roomId: roomId,
-        ),
+        builder: (context) => const RoomPage(),
       ),
-    );
-  }
-
-  void _onUpdateProfile() {
-    HapticFeedback.lightImpact();
-    Navigator.pop(context);
-    Navigator.push<Widget>(
-      context,
-      MaterialPageRoute(builder: (context) => ProfilePage()),
     );
   }
 

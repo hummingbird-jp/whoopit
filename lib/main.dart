@@ -9,10 +9,14 @@ import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:whoopit/constants.dart';
 import 'package:whoopit/pages/home_page.dart';
 
+import 'firebase_options.dart';
+
 Future<void> main() async {
   runZonedGuarded<Future<void>>(() async {
     WidgetsFlutterBinding.ensureInitialized();
-    await Firebase.initializeApp();
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
     await FirebaseCrashlytics.instance.setCrashlyticsCollectionEnabled(true);
     FlutterError.onError = FirebaseCrashlytics.instance.recordFlutterError;
     await FirebaseAppCheck.instance

@@ -1,23 +1,25 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:whoopit/states/room_state.dart';
 
-class RoomNameDialog extends StatelessWidget {
+class RoomNameDialog extends HookConsumerWidget {
   const RoomNameDialog({
     Key? key,
     required GlobalKey<FormState> formKey,
     required CollectionReference<Map<String, dynamic>> roomsCollection,
-    required this.roomId,
   })  : _formKey = formKey,
         _roomsCollection = roomsCollection,
         super(key: key);
 
   final GlobalKey<FormState> _formKey;
   final CollectionReference<Map<String, dynamic>> _roomsCollection;
-  final String roomId;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final RoomState roomState = ref.watch(roomProvider);
+
     return CupertinoAlertDialog(
       title: const Text('New Room Name'),
       content: Form(
@@ -40,7 +42,7 @@ class RoomNameDialog extends StatelessWidget {
           },
           style: TextStyle(color: Theme.of(context).colorScheme.onPrimary),
           onSaved: (value) {
-            _roomsCollection.doc(roomId).update({'roomName': value});
+            _roomsCollection.doc(roomState.roomId).update({'roomName': value});
           },
         ),
       ),

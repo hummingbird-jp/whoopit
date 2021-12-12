@@ -1,9 +1,9 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-import 'package:whoopit/models/authentication.dart';
+import 'package:whoopit/states/authentication.dart';
 
-class SignupPage extends StatelessWidget {
+class SignupPage extends ConsumerWidget {
   SignupPage({Key? key}) : super(key: key);
 
   final TextEditingController _emailController = TextEditingController();
@@ -11,8 +11,8 @@ class SignupPage extends StatelessWidget {
   final TextEditingController _nameController = TextEditingController();
 
   @override
-  Widget build(BuildContext context) {
-    final authModel = context.read(authProvider);
+  Widget build(BuildContext context, WidgetRef ref) {
+    final authModel = ref.read(authProvider);
 
     return Scaffold(
       appBar: AppBar(
