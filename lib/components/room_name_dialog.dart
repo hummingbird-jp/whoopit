@@ -40,7 +40,6 @@ class RoomNameDialog extends HookConsumerWidget {
             }
             return null;
           },
-          style: TextStyle(color: Theme.of(context).colorScheme.onPrimary),
           onSaved: (value) {
             _roomsCollection.doc(roomState.roomId).update({'roomName': value});
           },

@@ -29,20 +29,23 @@ class RoomPage extends HookConsumerWidget {
             return Container(
               width: double.infinity,
               height: double.infinity,
-              color: Theme.of(context).colorScheme.background,
+              color: CupertinoTheme.of(context).scaffoldBackgroundColor,
               child: const CupertinoActivityIndicator(),
             );
           }
 
-          return Scaffold(
-            appBar: AppBar(
-              backgroundColor:
-                  snapshot.hasData && snapshot.data!.docs.length >= 2
-                      ? Theme.of(context).colorScheme.secondary
-                      : Theme.of(context).colorScheme.background,
+          return CupertinoPageScaffold(
+            navigationBar: CupertinoNavigationBar(
+              //backgroundColor:
+              //    snapshot.hasData && snapshot.data!.docs.length >= 2
+              //        ? Theme.of(context).colorScheme.secondary
+              //        : Theme.of(context).colorScheme.background,
               automaticallyImplyLeading: false,
-              title: GestureDetector(
-                onTap: () => roomState.onRoomNameTapped,
+              middle: GestureDetector(
+                onTap: () => roomState.onRoomNameTapped(
+                  context,
+                  roomState,
+                ),
                 child: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
                     stream: roomState.roomStream,
                     builder: (context, snapshot) {
@@ -57,10 +60,10 @@ class RoomPage extends HookConsumerWidget {
                     }),
               ),
             ),
-            backgroundColor: snapshot.hasData && snapshot.data!.docs.length >= 2
-                ? Theme.of(context).colorScheme.secondary
-                : Theme.of(context).colorScheme.background,
-            body: SafeArea(
+            //backgroundColor: snapshot.hasData && snapshot.data!.docs.length >= 2
+            //    ? Theme.of(context).colorScheme.secondary
+            //    : Theme.of(context).colorScheme.background,
+            child: SafeArea(
               child: Stack(
                 children: [
                   StreamBuilder<QuerySnapshot>(
@@ -103,8 +106,8 @@ class RoomPage extends HookConsumerWidget {
                                       apiKey:
                                           'zS43gpI1tyh32oBapKuwt7vNXz7PMoOe',
                                       lang: GiphyLanguage.english,
-                                      tabColor:
-                                          Theme.of(context).colorScheme.primary,
+                                      tabColor: CupertinoTheme.of(context)
+                                          .primaryColor,
                                     );
                                     currentGifUrl =
                                         _newGif?.images!.original!.webp;
@@ -151,12 +154,12 @@ class RoomPage extends HookConsumerWidget {
                         children: [
                           PillButton(
                             child: const Text('👋 Leave'),
-                            color: Theme.of(context).colorScheme.primary,
+                            color: CupertinoTheme.of(context).primaryColor,
                             onPressed: () => roomState.leave(context),
                           ),
                           PillButton(
                             child: const Text('👏'),
-                            color: Theme.of(context).colorScheme.primary,
+                            color: CupertinoTheme.of(context).primaryColor,
                             onPressed: () =>
                                 roomState.isMeClapping ? null : roomState.clap,
                           ),
@@ -165,8 +168,9 @@ class RoomPage extends HookConsumerWidget {
                                 ? const Text('Unmute')
                                 : const Text('Mute'),
                             color: roomState.isMuted
-                                ? Theme.of(context).colorScheme.secondary
-                                : Theme.of(context).colorScheme.primary,
+                                ? CupertinoTheme.of(context)
+                                    .primaryContrastingColor
+                                : CupertinoTheme.of(context).primaryColor,
                             onPressed: roomState.mute,
                           ),
                         ],

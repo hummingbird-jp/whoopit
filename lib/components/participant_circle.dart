@@ -60,14 +60,14 @@ class ParticipantCircle extends StatelessWidget {
                   Visibility(
                     visible: isMuted ?? false,
                     child: Container(
-                      color: Theme.of(context)
-                          .colorScheme
-                          .primary
+                      color: CupertinoTheme.of(context)
+                          .primaryColor
                           .withOpacity(0.8),
                       child: Center(
                         child: Icon(
                           CupertinoIcons.mic_off,
-                          color: Theme.of(context).colorScheme.secondary,
+                          color: CupertinoTheme.of(context)
+                              .primaryContrastingColor,
                         ),
                       ),
                     ),

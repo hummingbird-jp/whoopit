@@ -19,7 +19,9 @@ class FullScreenActivityIndicator extends StatelessWidget {
         child: Container(
           width: double.infinity,
           height: double.infinity,
-          color: Theme.of(context).colorScheme.background.withOpacity(0.9),
+          color: CupertinoTheme.of(context)
+              .scaffoldBackgroundColor
+              .withOpacity(0.9),
           child: const Center(
             child: CupertinoActivityIndicator(),
           ),

@@ -14,12 +14,11 @@ class SigninPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final authModel = ref.read(authProvider);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('SIGN IN'),
+    return CupertinoPageScaffold(
+      navigationBar: const CupertinoNavigationBar(
+        middle: Text('SIGN IN'),
       ),
-      backgroundColor: Theme.of(context).colorScheme.background,
-      body: SafeArea(
+      child: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(8.0),
           child: Column(
@@ -33,9 +32,6 @@ class SigninPage extends ConsumerWidget {
                   controller: _emailController,
                   prefix: const Icon(CupertinoIcons.mail),
                   placeholder: 'Email',
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.onBackground,
-                  ),
                 ),
               ),
               Hero(
@@ -46,9 +42,6 @@ class SigninPage extends ConsumerWidget {
                   controller: _passwordController,
                   prefix: const Icon(CupertinoIcons.shield_fill),
                   placeholder: 'Password',
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.onBackground,
-                  ),
                 ),
               ),
               Hero(

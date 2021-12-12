@@ -25,88 +25,81 @@ class HomePage extends HookConsumerWidget {
 
     return WillPopScope(
       onWillPop: () async => false,
-      child: Scaffold(
-        appBar: AppBar(
+      child: CupertinoPageScaffold(
+        navigationBar: CupertinoNavigationBar(
           automaticallyImplyLeading: false,
-          actions: [
-            GestureDetector(
-              onTap: () {
-                showCupertinoModalPopup<void>(
-                  context: context,
-                  builder: (context) => authModel.isSignedIn
-                      ? CupertinoActionSheet(
-                          message: Text(
-                            'You\'re signed in as ${authModel.displayName}',
-                          ),
-                          actions: [
-                            CupertinoActionSheetAction(
-                              isDestructiveAction: true,
-                              isDefaultAction: true,
-                              onPressed: () {
-                                authModel.signOut();
-                                Navigator.pop(context);
-                              },
-                              child: const Text('Sign Out'),
-                            ),
-                            CupertinoActionSheetAction(
-                              onPressed: () {
-                                HapticFeedback.lightImpact();
-                                Navigator.pop(context);
-                                Navigator.push<Widget>(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => ProfilePage(),
-                                  ),
-                                );
-                              },
-                              child: const Text('Update Profile'),
-                            ),
-                          ],
-                          cancelButton: CupertinoActionSheetAction(
-                            child: const Text('Cancel'),
-                            onPressed: () => Navigator.pop(context),
-                          ),
-                        )
-                      : CupertinoActionSheet(
-                          actions: [
-                            CupertinoActionSheetAction(
-                              isDefaultAction: true,
-                              onPressed: () {
-                                Navigator.pop(context);
-                                Navigator.push<Widget>(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => SigninPage(),
-                                  ),
-                                );
-                              },
-                              child: const Text('Sign In'),
-                            ),
-                          ],
-                          cancelButton: CupertinoActionSheetAction(
-                            child: const Text('Cancel'),
-                            onPressed: () => Navigator.pop(context),
-                          ),
+          trailing: GestureDetector(
+            onTap: () {
+              showCupertinoModalPopup<void>(
+                context: context,
+                builder: (context) => authModel.isSignedIn
+                    ? CupertinoActionSheet(
+                        message: Text(
+                          'You\'re signed in as ${authModel.displayName}',
                         ),
-                );
-              },
-              child: Hero(
-                tag: 'profile',
-                child: authModel.photoUrl != null
-                    ? CircleAvatar(
-                        backgroundImage: CachedNetworkImageProvider(
-                          authModel.photoUrl.toString(),
+                        actions: [
+                          CupertinoActionSheetAction(
+                            isDestructiveAction: true,
+                            isDefaultAction: true,
+                            onPressed: () {
+                              authModel.signOut();
+                              Navigator.pop(context);
+                            },
+                            child: const Text('Sign Out'),
+                          ),
+                          CupertinoActionSheetAction(
+                            onPressed: () {
+                              HapticFeedback.lightImpact();
+                              Navigator.pop(context);
+                              Navigator.push<Widget>(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => ProfilePage(),
+                                ),
+                              );
+                            },
+                            child: const Text('Update Profile'),
+                          ),
+                        ],
+                        cancelButton: CupertinoActionSheetAction(
+                          child: const Text('Cancel'),
+                          onPressed: () => Navigator.pop(context),
                         ),
-                        radius: 20,
                       )
-                    : const Icon(CupertinoIcons.profile_circled),
-              ),
-            ),
-            const SizedBox(width: 24.0),
-          ],
+                    : CupertinoActionSheet(
+                        actions: [
+                          CupertinoActionSheetAction(
+                            isDefaultAction: false,
+                            onPressed: () {
+                              Navigator.pop(context);
+                              Navigator.push<Widget>(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => SigninPage(),
+                                ),
+                              );
+                            },
+                            child: const Text('Sign In'),
+                          ),
+                        ],
+                        cancelButton: CupertinoActionSheetAction(
+                          child: const Text('Cancel'),
+                          onPressed: () => Navigator.pop(context),
+                        ),
+                      ),
+              );
+            },
+            child: authModel.photoUrl != null
+                ? CircleAvatar(
+                    backgroundImage: CachedNetworkImageProvider(
+                      authModel.photoUrl.toString(),
+                    ),
+                    radius: 20,
+                  )
+                : const Icon(CupertinoIcons.profile_circled),
+          ),
         ),
-        backgroundColor: Theme.of(context).colorScheme.background,
-        body: Padding(
+        child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
           child: ListView(
             children: [

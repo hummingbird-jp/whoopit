@@ -18,12 +18,11 @@ class ProfilePage extends HookConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final Authentication authModel = ref.watch(authProvider);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Profile'),
+    return CupertinoPageScaffold(
+      navigationBar: const CupertinoNavigationBar(
+        middle: Text('Profile'),
       ),
-      backgroundColor: Theme.of(context).colorScheme.background,
-      body: SafeArea(
+      child: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(8.0),
           child: Column(
@@ -74,9 +73,11 @@ class ProfilePage extends HookConsumerWidget {
                             backgroundColor: Colors.black.withOpacity(0.5),
                             radius: 50,
                           ),
-                          const Icon(
+                          Icon(
                             CupertinoIcons.pencil,
                             size: 30,
+                            color: CupertinoTheme.of(context)
+                                .primaryContrastingColor,
                           ),
                         ],
                       )
@@ -94,9 +95,6 @@ class ProfilePage extends HookConsumerWidget {
                   return null;
                 },
                 autovalidateMode: AutovalidateMode.onUserInteraction,
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.onBackground,
-                ),
               ),
               CupertinoButton.filled(
                 child: const Text('Update'),

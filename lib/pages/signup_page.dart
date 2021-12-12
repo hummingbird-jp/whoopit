@@ -14,12 +14,11 @@ class SignupPage extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final authModel = ref.read(authProvider);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('SIGN UP'),
+    return CupertinoPageScaffold(
+      navigationBar: const CupertinoNavigationBar(
+        middle: Text('SIGN UP'),
       ),
-      backgroundColor: Theme.of(context).colorScheme.background,
-      body: SafeArea(
+      child: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(8.0),
           child: Column(
@@ -33,9 +32,6 @@ class SignupPage extends ConsumerWidget {
                   controller: _emailController,
                   placeholder: 'Email',
                   prefix: const Icon(CupertinoIcons.mail),
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.onBackground,
-                  ),
                 ),
               ),
               Hero(
@@ -46,9 +42,6 @@ class SignupPage extends ConsumerWidget {
                   controller: _passwordController,
                   placeholder: 'Password',
                   prefix: const Icon(CupertinoIcons.shield_fill),
-                  style: TextStyle(
-                    color: Theme.of(context).colorScheme.onBackground,
-                  ),
                 ),
               ),
               CupertinoTextFormFieldRow(
@@ -56,9 +49,6 @@ class SignupPage extends ConsumerWidget {
                 textCapitalization: TextCapitalization.words,
                 placeholder: 'Name',
                 prefix: const Icon(CupertinoIcons.profile_circled),
-                style: TextStyle(
-                  color: Theme.of(context).colorScheme.onBackground,
-                ),
               ),
               Hero(
                 tag: 'signin-button',
