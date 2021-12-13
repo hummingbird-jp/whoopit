@@ -1,23 +1,40 @@
-import 'package:flutter/material.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutterfire_ui/auth.dart';
+import 'package:flutterfire_ui/auth/google.dart';
 
-ThemeData kThemeData = ThemeData(
-  colorScheme: const ColorScheme(
-    brightness: Brightness.dark,
-    primary: Color(0xFF4642B3),
-    primaryVariant: Color(0xFF4642B3),
-    secondary: Color(0xFFFFCC4A),
-    secondaryVariant: Color(0xFFFFCC4A),
-    error: Color(0xFFFF2D34),
-    surface: Color(0xFF000030),
-    background: Color(0xFF000030),
-    onPrimary: Colors.white,
-    onSecondary: Color(0xFF4642B3),
-    onError: Color(0xFF0D0D0D),
-    onSurface: Colors.white,
-    onBackground: Colors.white,
+CupertinoThemeData kThemeData = const CupertinoThemeData(
+  primaryColor: CupertinoDynamicColor.withBrightness(
+    color: Color(0xFF4642B3),
+    darkColor: Color(0xFF18173D),
   ),
-  appBarTheme: const AppBarTheme(
-    backgroundColor: Color(0xFF000030),
-    shadowColor: Colors.transparent,
+  primaryContrastingColor: CupertinoDynamicColor.withBrightness(
+    color: Color(0xFFFFCC4A),
+    darkColor: Color(0xFFB08D33),
+  ),
+  barBackgroundColor: CupertinoDynamicColor.withBrightness(
+    color: Color(0xFF000030),
+    darkColor: Color(0xFF00000E),
+  ),
+  scaffoldBackgroundColor: CupertinoDynamicColor.withBrightness(
+    color: Color(0xFF000030),
+    darkColor: Color(0xFF00000E),
+  ),
+  textTheme: CupertinoTextThemeData(
+    primaryColor: CupertinoDynamicColor.withBrightness(
+      color: Color(0xFFFFFFFF),
+      darkColor: Color(0xFFCCCCCC),
+    ),
+    textStyle: TextStyle(
+      fontFamily: 'Helvetica Neue',
+      fontSize: 17,
+      fontWeight: FontWeight.w400,
+    ),
   ),
 );
+
+const providerConfigs = [
+  EmailProviderConfiguration(),
+  GoogleProviderConfiguration(
+    clientId: 'fir-flutter-codelab-32edb',
+  ),
+];

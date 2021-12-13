@@ -1,5 +1,4 @@
 import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
 
 class FullScreenActivityIndicator extends StatelessWidget {
   const FullScreenActivityIndicator({
@@ -19,7 +18,9 @@ class FullScreenActivityIndicator extends StatelessWidget {
         child: Container(
           width: double.infinity,
           height: double.infinity,
-          color: Theme.of(context).colorScheme.background.withOpacity(0.9),
+          color: CupertinoTheme.of(context)
+              .scaffoldBackgroundColor
+              .withOpacity(0.9),
           child: const Center(
             child: CupertinoActivityIndicator(),
           ),

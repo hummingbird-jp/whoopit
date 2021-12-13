@@ -19,7 +19,7 @@ class ParticipantCircle extends StatelessWidget {
 
   final DocumentReference? participantRef;
   final double size;
-  final String photoUrl;
+  final String? photoUrl;
   final String? name;
   final bool? isMuted;
   final int? shakeCount;
@@ -33,10 +33,10 @@ class ParticipantCircle extends StatelessWidget {
       visible: isJoined,
       child: Stack(
         children: [
-          photoUrl != ''
+          photoUrl != '' && photoUrl != null
               ? CircleAvatar(
                   backgroundImage: CachedNetworkImageProvider(
-                    photoUrl,
+                    photoUrl as String,
                   ),
                   radius: size,
                 )
@@ -60,14 +60,14 @@ class ParticipantCircle extends StatelessWidget {
                   Visibility(
                     visible: isMuted ?? false,
                     child: Container(
-                      color: Theme.of(context)
-                          .colorScheme
-                          .primary
+                      color: CupertinoTheme.of(context)
+                          .primaryColor
                           .withOpacity(0.8),
                       child: Center(
                         child: Icon(
                           CupertinoIcons.mic_off,
-                          color: Theme.of(context).colorScheme.secondary,
+                          color: CupertinoTheme.of(context)
+                              .primaryContrastingColor,
                         ),
                       ),
                     ),
