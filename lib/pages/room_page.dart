@@ -43,17 +43,18 @@ class RoomPage extends HookConsumerWidget {
               middle: GestureDetector(
                 onTap: () => roomState.onRoomNameTapped(context),
                 child: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
-                    stream: roomState.roomStream,
-                    builder: (context, snapshot) {
-                      if (!snapshot.hasData) {
-                        return const CupertinoActivityIndicator();
-                      }
+                  stream: roomState.roomStream,
+                  builder: (context, snapshot) {
+                    if (!snapshot.hasData) {
+                      return const CupertinoActivityIndicator();
+                    }
 
-                      Map<String, dynamic>? data = snapshot.data!.data();
-                      return Text(
-                        data?['roomName'] as String? ?? roomState.roomId,
-                      );
-                    }),
+                    Map<String, dynamic>? data = snapshot.data!.data();
+                    return Text(
+                      data?['roomName'] as String? ?? roomState.roomId,
+                    );
+                  },
+                ),
               ),
             ),
             //backgroundColor: snapshot.hasData && snapshot.data!.docs.length >= 2

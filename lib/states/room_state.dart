@@ -24,7 +24,7 @@ class RoomState extends ChangeNotifier {
   bool _isMeJoinInProgress = false;
   bool _isMeLeaveInProgress = false;
   bool _isMeClapping = false;
-  bool _isMuted = false;
+  bool _isMuted = true;
 
   // Collections
   late CollectionReference<Map<String, dynamic>> _roomsCollection;
@@ -185,16 +185,14 @@ class RoomState extends ChangeNotifier {
     _isMeJoinInProgress = true;
     _token = await _fetchTokenWithUid();
 
-    Future.wait([
-      _rtcEngine.joinChannel(
-        _token,
-        _roomId,
-        null,
-        FirebaseAuth.instance.currentUser!.uid.hashCode,
-      ),
-      _rtcEngine.enableAudio(),
-      _rtcEngine.muteLocalAudioStream(true),
-    ]);
+    _rtcEngine.joinChannel(
+      _token,
+      _roomId,
+      null,
+      FirebaseAuth.instance.currentUser!.uid.hashCode,
+    );
+    await _rtcEngine.enableAudio();
+    await _rtcEngine.muteLocalAudioStream(true);
 
     _myParticipantDocument = _participantsCollection.doc(_me.firebaseUid);
 
