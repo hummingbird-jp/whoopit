@@ -76,6 +76,8 @@ class AudioState extends ChangeNotifier {
   }
 
   Future<void> playBeer() async {
+    log('playBeer()');
+
     if (_initStatus == AudioStateInitStatus.yet) {
       await init();
     }

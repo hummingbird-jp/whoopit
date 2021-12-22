@@ -35,6 +35,10 @@ class RoomPage extends HookConsumerWidget {
             );
           }
 
+          if (snapshot.data!.docs.length >= 2) {
+            audioState.playBeer();
+          }
+
           return CupertinoPageScaffold(
             navigationBar: CupertinoNavigationBar(
               //backgroundColor:
