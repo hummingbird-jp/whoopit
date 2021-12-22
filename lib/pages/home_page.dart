@@ -9,18 +9,18 @@ import 'package:flutterfire_ui/auth.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:whoopit/components/participant_circle.dart';
 import 'package:whoopit/constants.dart';
+import 'package:whoopit/states/audio_state.dart';
 import 'package:whoopit/states/authentication_state.dart';
 import 'package:whoopit/states/room_state.dart';
-
-import 'room_page.dart';
 
 class HomePage extends HookConsumerWidget {
   const HomePage({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final AuthenticationState authModel = ref.watch(authProvider);
+    final AuthenticationState authState = ref.watch(authProvider);
     final RoomState roomState = ref.watch(roomProvider);
+    final AudioState audioState = ref.watch(audioProvider);
 
     return WillPopScope(
       onWillPop: () async => false,
@@ -33,7 +33,7 @@ class HomePage extends HookConsumerWidget {
                 context: context,
                 builder: (context) => CupertinoActionSheet(
                   message: Text(
-                    'You\'re signed in as ${authModel.displayName}',
+                    'You\'re signed in as ${authState.displayName}',
                   ),
                   actions: [
                     CupertinoActionSheetAction(
@@ -59,10 +59,10 @@ class HomePage extends HookConsumerWidget {
                 ),
               );
             },
-            child: authModel.photoUrl != null
+            child: authState.photoUrl != null
                 ? CircleAvatar(
                     backgroundImage: CachedNetworkImageProvider(
-                      authModel.photoUrl.toString(),
+                      authState.photoUrl.toString(),
                     ),
                     radius: 20,
                   )
@@ -85,7 +85,7 @@ class HomePage extends HookConsumerWidget {
                   ),
                 ),
               ),
-              buildRoomTileList(roomState),
+              buildRoomTileList(roomState, audioState),
             ],
           ),
         ),
@@ -93,7 +93,10 @@ class HomePage extends HookConsumerWidget {
     );
   }
 
-  StreamBuilder<QuerySnapshot> buildRoomTileList(RoomState roomState) {
+  StreamBuilder<QuerySnapshot> buildRoomTileList(
+    RoomState roomState,
+    AudioState audioState,
+  ) {
     final CollectionReference<Map<String, dynamic>> _roomsCollection =
         FirebaseFirestore.instance.collection('rooms');
     final Stream<QuerySnapshot> _roomsStream = _roomsCollection.snapshots();
@@ -128,6 +131,7 @@ class HomePage extends HookConsumerWidget {
                 return buildRoomTile(
                   context,
                   roomState,
+                  audioState,
                   _roomsCollection,
                   _roomId,
                   _roomName,
@@ -141,9 +145,11 @@ class HomePage extends HookConsumerWidget {
                 CupertinoIcons.add,
                 color: Colors.white.withOpacity(0.5),
               ),
-              onPressed: () {
-                _onCreateRoom(context, roomState, _getRandomString(15));
-              },
+              onPressed: () => roomState.create(
+                context,
+                audioState,
+                _getRandomString(15),
+              ),
             ),
           ],
         );
@@ -154,6 +160,7 @@ class HomePage extends HookConsumerWidget {
   Widget buildRoomTile(
     BuildContext context,
     RoomState roomState,
+    AudioState audioState,
     CollectionReference<Map<String, dynamic>> roomsCollection,
     String roomId,
     String roomName,
@@ -162,7 +169,7 @@ class HomePage extends HookConsumerWidget {
         roomsCollection.doc(roomId).collection('participants').snapshots();
 
     return GestureDetector(
-      onTap: () => _onJoin(context, roomState, roomId),
+      onTap: () => roomState.join(context, roomId, audioState),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(20.0),
         child: Stack(
@@ -255,7 +262,7 @@ class HomePage extends HookConsumerWidget {
                                     onPressed: () {
                                       HapticFeedback.lightImpact();
                                       Navigator.pop(context);
-                                      _deleteRoom(roomsCollection, roomId);
+                                      roomState.delete(roomId);
                                     },
                                     child: const Text('Continue'),
                                   ),
@@ -284,39 +291,6 @@ class HomePage extends HookConsumerWidget {
     );
   }
 
-  void _onCreateRoom(
-    BuildContext context,
-    RoomState roomState,
-    String newRoomId,
-  ) {
-    String roomId = newRoomId;
-    HapticFeedback.heavyImpact();
-
-    roomState.roomsCollection.doc(roomId).set(<String, dynamic>{
-      'roomName': roomId,
-      'createdAt': Timestamp.now(),
-    });
-
-    _onJoin(context, roomState, newRoomId);
-  }
-
-  Future<void> _onJoin(
-    BuildContext context,
-    RoomState roomState,
-    String roomId,
-  ) async {
-    HapticFeedback.lightImpact();
-
-    await roomState.init(roomId);
-    await roomState.join();
-    Navigator.push<Widget>(
-      context,
-      CupertinoPageRoute(
-        builder: (context) => const RoomPage(),
-      ),
-    );
-  }
-
   String _getRandomString(int length) {
     const String _alphaNum =
         'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz1234567890';
@@ -330,12 +304,5 @@ class HomePage extends HookConsumerWidget {
         ),
       ),
     );
-  }
-
-  void _deleteRoom(
-    CollectionReference<Map<String, dynamic>> roomsCollection,
-    String roomId,
-  ) {
-    roomsCollection.doc(roomId).delete();
   }
 }

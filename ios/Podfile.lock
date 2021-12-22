@@ -347,7 +347,7 @@ PODS:
     - AppAuth/ExternalUserAgent (= 1.4.0)
   - AppAuth/Core (1.4.0)
   - AppAuth/ExternalUserAgent (1.4.0)
-  - audioplayers (0.0.1):
+  - audio_session (0.0.1):
     - Flutter
   - BoringSSL-GRPC (0.0.7):
     - BoringSSL-GRPC/Implementation (= 0.0.7)
@@ -609,6 +609,8 @@ PODS:
   - GTMSessionFetcher/Core (1.7.0)
   - image_picker (0.0.1):
     - Flutter
+  - just_audio (0.0.1):
+    - Flutter
   - leveldb-library (1.22.1)
   - nanopb (2.30908.0):
     - nanopb/decode (= 2.30908.0)
@@ -636,7 +638,7 @@ PODS:
 
 DEPENDENCIES:
   - agora_rtc_engine (from `.symlinks/plugins/agora_rtc_engine/ios`)
-  - audioplayers (from `.symlinks/plugins/audioplayers/ios`)
+  - audio_session (from `.symlinks/plugins/audio_session/ios`)
   - cloud_firestore (from `.symlinks/plugins/cloud_firestore/ios`)
   - cloud_functions (from `.symlinks/plugins/cloud_functions/ios`)
   - firebase_analytics (from `.symlinks/plugins/firebase_analytics/ios`)
@@ -651,6 +653,7 @@ DEPENDENCIES:
   - flutter_facebook_auth (from `.symlinks/plugins/flutter_facebook_auth/ios`)
   - google_sign_in (from `.symlinks/plugins/google_sign_in/ios`)
   - image_picker (from `.symlinks/plugins/image_picker/ios`)
+  - just_audio (from `.symlinks/plugins/just_audio/ios`)
   - path_provider_ios (from `.symlinks/plugins/path_provider_ios/ios`)
   - permission_handler (from `.symlinks/plugins/permission_handler/ios`)
   - sensors (from `.symlinks/plugins/sensors/ios`)
@@ -701,8 +704,8 @@ SPEC REPOS:
 EXTERNAL SOURCES:
   agora_rtc_engine:
     :path: ".symlinks/plugins/agora_rtc_engine/ios"
-  audioplayers:
-    :path: ".symlinks/plugins/audioplayers/ios"
+  audio_session:
+    :path: ".symlinks/plugins/audio_session/ios"
   cloud_firestore:
     :path: ".symlinks/plugins/cloud_firestore/ios"
   cloud_functions:
@@ -731,6 +734,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/google_sign_in/ios"
   image_picker:
     :path: ".symlinks/plugins/image_picker/ios"
+  just_audio:
+    :path: ".symlinks/plugins/just_audio/ios"
   path_provider_ios:
     :path: ".symlinks/plugins/path_provider_ios/ios"
   permission_handler:
@@ -753,7 +758,7 @@ SPEC CHECKSUMS:
   agora_rtc_engine: 0820b82b3a71a8fcaf8b27c000622e671349f0ba
   AgoraRtcEngine_iOS: ff8e085161ea98c917173783a899882f884dd9ef
   AppAuth: 31bcec809a638d7bd2f86ea8a52bd45f6e81e7c7
-  audioplayers: 455322b54050b30ea4b1af7cd9e9d105f74efa8c
+  audio_session: 4f3e461722055d21515cf3261b64c973c062f345
   BoringSSL-GRPC: 8edf627ee524575e2f8d19d56f068b448eea3879
   cloud_firestore: 0c744725c0d1544d77db2c8eb35ef919cb19a176
   cloud_functions: 786d5b5ebbb7b16daa9d4a2e302a76816cadf42f
@@ -797,6 +802,7 @@ SPEC CHECKSUMS:
   GTMAppAuth: ad5c2b70b9a8689e1a04033c9369c4915bfcbe89
   GTMSessionFetcher: 43748f93435c2aa068b1cbe39655aaf600652e91
   image_picker: 9aa50e1d8cdacdbed739e925b7eea16d014367e6
+  just_audio: baa7252489dbcf47a4c7cc9ca663e9661c99aafa
   leveldb-library: 50c7b45cbd7bf543c81a468fe557a16ae3db8729
   nanopb: a0ba3315591a9ae0a16a309ee504766e90db0c96
   path_provider_ios: 7d7ce634493af4477d156294792024ec3485acd5
