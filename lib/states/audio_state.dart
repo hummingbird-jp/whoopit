@@ -1,96 +1,86 @@
-import 'package:audioplayers/audioplayers.dart';
+import 'dart:developer';
+
+import 'package:audio_session/audio_session.dart';
 import 'package:flutter/material.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'package:just_audio/just_audio.dart';
 
 final audioProvider = ChangeNotifierProvider<AudioState>((_) => AudioState());
 
+enum AudioStateInitStatus {
+  yet,
+  inProgress,
+  done,
+}
+
 class AudioState extends ChangeNotifier {
   bool _isPlaying = false;
-  bool _isInitialized = false;
+  AudioStateInitStatus _initStatus = AudioStateInitStatus.yet;
   final AudioPlayer _bgmPlayer = AudioPlayer();
-  final AudioPlayer _effectPlayer = AudioPlayer();
-  late final AudioCache _bgmCache = AudioCache(
-    fixedPlayer: _bgmPlayer,
-    prefix: 'assets/sounds/',
-  );
-  late final AudioCache _effectCache = AudioCache(
-    fixedPlayer: _effectPlayer,
-    prefix: 'assets/sounds/',
-  );
+  final AudioPlayer _beerPlayer = AudioPlayer();
+  final AudioPlayer _boomPlayer = AudioPlayer();
 
   bool get isPlaying => _isPlaying;
-  bool get isInitialized => _isInitialized;
-  AudioPlayer get audioPlayer => _bgmPlayer;
-  AudioCache get audioCache => _bgmCache;
+  AudioStateInitStatus get isInitialized => _initStatus;
+  AudioPlayer get bgmPlayer => _bgmPlayer;
+  AudioPlayer get beerPlayer => _beerPlayer;
+  AudioPlayer get boomPlayer => _boomPlayer;
 
   Future<void> init() async {
-    await _bgmPlayer.setReleaseMode(ReleaseMode.STOP);
-    await _effectPlayer.setReleaseMode(ReleaseMode.STOP);
-    _isInitialized = true;
+    log('Initializing AudioState...');
+
+    final AudioSession session = await AudioSession.instance;
+    session.configure(
+      const AudioSessionConfiguration.music(),
+    );
+
+    _bgmPlayer.setAsset('assets/sounds/jazz.mp3');
+    _beerPlayer.setAsset('assets/sounds/soda.wav');
+    _boomPlayer.setAsset('assets/sounds/boom.wav');
+
+    _bgmPlayer.setLoopMode(LoopMode.all);
+    _bgmPlayer.setVolume(0.2);
+
+    _initStatus = AudioStateInitStatus.done;
     notifyListeners();
+
+    log('Done');
   }
 
   Future<void> playBGM() async {
-    if (!_isInitialized) {
+    if (_initStatus == AudioStateInitStatus.yet) {
       await init();
     }
-    await _bgmCache.loop('jazz.mp3', volume: 0.01);
+
+    _bgmPlayer.play();
+
     _isPlaying = true;
     notifyListeners();
   }
 
   Future<void> pauseBGM() async {
     await _bgmPlayer.pause();
+
     _isPlaying = false;
     notifyListeners();
   }
 
   Future<void> stopBGM() async {
-    await _bgmPlayer.stop();
+    // audioPlayer.stop() is deprecated after 0.6.x
+    // https://pub.dev/packages/just_audio#migrating-from-05x-to-06x
+    await _bgmPlayer.pause();
+    await _bgmPlayer.seek(Duration.zero);
+
     _isPlaying = false;
     notifyListeners();
   }
 
-  Future<void> playEffect(String fileName) async {
-    if (!_isInitialized) {
+  Future<void> playBeer() async {
+    log('playBeer()');
+
+    if (_initStatus == AudioStateInitStatus.yet) {
       await init();
     }
-    await _effectCache.play(fileName, volume: 0.1);
+    await _beerPlayer.play();
   }
 }
-
-
-//class AudioState {
-//  late final AudioCache _audioCache = AudioCache(
-//    fixedPlayer: AudioPlayer(),
-//    prefix: 'assets/sounds/',
-//  );
-//  AudioPlayer? _audioPlayer;
-
-//  AudioState({
-//    required this.fileName,
-//    required this.isLoop,
-//  }) {
-//    () async {
-//      await _audioPlayer?.stop();
-//      await _audioPlayer?.dispose();
-
-//      if (isLoop) {
-//        _audioPlayer = await _audioCache.loop(fileName);
-//      } else {
-//        _audioPlayer = await _audioCache.play(fileName);
-//      }
-//    }();
-//  }
-
-//  final String fileName;
-//  final bool isLoop;
-
-//  Future<void> resume() async => _audioPlayer?.resume();
-
-//  Future<void> pause() async => _audioPlayer?.pause();
-
-//  Future<void> stop() async => _audioPlayer?.stop();
-
-//  Future<void> dispose() async => await _audioPlayer?.dispose();
-//}

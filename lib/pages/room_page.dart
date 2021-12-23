@@ -10,6 +10,7 @@ import 'package:whoopit/components/full_screen_activity_indicator.dart';
 import 'package:whoopit/components/participant_circle.dart';
 import 'package:whoopit/components/pill_button.dart';
 import 'package:whoopit/components/share_room_url_button.dart';
+import 'package:whoopit/states/audio_state.dart';
 import 'package:whoopit/states/room_state.dart';
 
 class RoomPage extends HookConsumerWidget {
@@ -18,6 +19,7 @@ class RoomPage extends HookConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final RoomState roomState = ref.watch(roomProvider);
+    final AudioState audioState = ref.watch(audioProvider);
 
     return WillPopScope(
       onWillPop: () async => false,
@@ -33,6 +35,10 @@ class RoomPage extends HookConsumerWidget {
             );
           }
 
+          if (snapshot.data!.docs.length >= 2) {
+            audioState.playBeer();
+          }
+
           return CupertinoPageScaffold(
             navigationBar: CupertinoNavigationBar(
               //backgroundColor:
@@ -43,17 +49,21 @@ class RoomPage extends HookConsumerWidget {
               middle: GestureDetector(
                 onTap: () => roomState.onRoomNameTapped(context),
                 child: StreamBuilder<DocumentSnapshot<Map<String, dynamic>>>(
-                    stream: roomState.roomStream,
-                    builder: (context, snapshot) {
-                      if (!snapshot.hasData) {
-                        return const CupertinoActivityIndicator();
-                      }
+                  stream: roomState.roomStream,
+                  builder: (context, snapshot) {
+                    if (!snapshot.hasData) {
+                      return const CupertinoActivityIndicator();
+                    }
 
-                      Map<String, dynamic>? data = snapshot.data!.data();
-                      return Text(
-                        data?['roomName'] as String? ?? roomState.roomId,
-                      );
-                    }),
+                    Map<String, dynamic>? data = snapshot.data!.data();
+                    return Text(
+                      data?['roomName'] as String? ?? roomState.roomId,
+                      style: const TextStyle(
+                        color: Color(0xFFFFFFFF),
+                      ),
+                    );
+                  },
+                ),
               ),
             ),
             //backgroundColor: snapshot.hasData && snapshot.data!.docs.length >= 2
@@ -151,13 +161,21 @@ class RoomPage extends HookConsumerWidget {
                           PillButton(
                             child: const Text('👋 Leave'),
                             color: CupertinoTheme.of(context).primaryColor,
-                            onPressed: () => roomState.leave(context),
+                            onPressed: () => roomState.leave(
+                              context,
+                              audioState,
+                            ),
                           ),
                           PillButton(
                             child: const Text('👏'),
                             color: CupertinoTheme.of(context).primaryColor,
-                            onPressed: () =>
-                                roomState.isMeClapping ? null : roomState.clap,
+                            onPressed: () {
+                              if (roomState.isMeClapping) {
+                                log('Ignoring because already clapping');
+                              } else {
+                                roomState.clap();
+                              }
+                            },
                           ),
                           PillButton(
                             child: roomState.isMuted

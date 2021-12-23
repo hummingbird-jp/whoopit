@@ -11,6 +11,8 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:shake/shake.dart';
 import 'package:whoopit/components/room_name_dialog.dart';
 import 'package:whoopit/models/participant.dart';
+import 'package:whoopit/pages/room_page.dart';
+import 'package:whoopit/states/audio_state.dart';
 
 final roomProvider = ChangeNotifierProvider((ref) => RoomState());
 
@@ -24,7 +26,7 @@ class RoomState extends ChangeNotifier {
   bool _isMeJoinInProgress = false;
   bool _isMeLeaveInProgress = false;
   bool _isMeClapping = false;
-  bool _isMuted = false;
+  bool _isMuted = true;
 
   // Collections
   late CollectionReference<Map<String, dynamic>> _roomsCollection;
@@ -169,6 +171,8 @@ class RoomState extends ChangeNotifier {
   }
 
   Future<void> clap() async {
+    log('roomState.clap()');
+
     _isMeClapping = true;
     _myParticipantDocument.update({'isClapping': true});
 
@@ -181,20 +185,42 @@ class RoomState extends ChangeNotifier {
     });
   }
 
-  Future<void> join() async {
+  Future<void> create(
+    BuildContext context,
+    AudioState audioState,
+    String roomId,
+  ) async {
+    HapticFeedback.heavyImpact();
+
+    roomsCollection.doc(roomId).set(<String, dynamic>{
+      'roomName': roomId,
+      'createdAt': Timestamp.now(),
+    });
+
+    join(context, roomId, audioState);
+  }
+
+  Future<void> join(
+    BuildContext context,
+    String roomId,
+    AudioState audioState,
+  ) async {
     _isMeJoinInProgress = true;
+
+    HapticFeedback.lightImpact();
+
+    await init(roomId);
+
     _token = await _fetchTokenWithUid();
 
-    Future.wait([
-      _rtcEngine.joinChannel(
-        _token,
-        _roomId,
-        null,
-        FirebaseAuth.instance.currentUser!.uid.hashCode,
-      ),
-      _rtcEngine.enableAudio(),
-      _rtcEngine.muteLocalAudioStream(true),
-    ]);
+    _rtcEngine.joinChannel(
+      _token,
+      _roomId,
+      null,
+      FirebaseAuth.instance.currentUser!.uid.hashCode,
+    );
+    await _rtcEngine.enableAudio();
+    await _rtcEngine.muteLocalAudioStream(true);
 
     _myParticipantDocument = _participantsCollection.doc(_me.firebaseUid);
 
@@ -209,12 +235,21 @@ class RoomState extends ChangeNotifier {
       'isJoined': true
     });
 
+    await audioState.playBGM();
+
+    Navigator.push<RoomPage>(
+      context,
+      CupertinoPageRoute(
+        builder: (context) => const RoomPage(),
+      ),
+    );
+
     _isMeJoinInProgress = false;
 
     notifyListeners();
   }
 
-  Future<void> leave(BuildContext context) async {
+  Future<void> leave(BuildContext context, AudioState audioState) async {
     _isMeLeaveInProgress = true;
 
     HapticFeedback.lightImpact();
@@ -227,6 +262,7 @@ class RoomState extends ChangeNotifier {
       _rtcEngine.leaveChannel(),
       _rtcEngine.disableAudio(),
       _rtcEngine.destroy(),
+      audioState.stopBGM(),
     ]);
 
     Navigator.pop(context);
@@ -234,6 +270,9 @@ class RoomState extends ChangeNotifier {
 
     notifyListeners();
   }
+
+  Future<void> delete(String roomId) async =>
+      roomsCollection.doc(roomId).delete();
 
   Future<void> mute() async {
     HapticFeedback.lightImpact();

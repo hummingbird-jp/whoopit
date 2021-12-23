@@ -9,18 +9,18 @@ import 'package:flutterfire_ui/auth.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:whoopit/components/participant_circle.dart';
 import 'package:whoopit/constants.dart';
+import 'package:whoopit/states/audio_state.dart';
 import 'package:whoopit/states/authentication_state.dart';
 import 'package:whoopit/states/room_state.dart';
-
-import 'room_page.dart';
 
 class HomePage extends HookConsumerWidget {
   const HomePage({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final AuthenticationState authModel = ref.watch(authProvider);
+    final AuthenticationState authState = ref.watch(authProvider);
     final RoomState roomState = ref.watch(roomProvider);
+    final AudioState audioState = ref.watch(audioProvider);
 
     return WillPopScope(
       onWillPop: () async => false,
@@ -33,7 +33,7 @@ class HomePage extends HookConsumerWidget {
                 context: context,
                 builder: (context) => CupertinoActionSheet(
                   message: Text(
-                    'You\'re signed in as ${authModel.displayName}',
+                    'You\'re signed in as ${authState.displayName}',
                   ),
                   actions: [
                     CupertinoActionSheetAction(
@@ -59,10 +59,10 @@ class HomePage extends HookConsumerWidget {
                 ),
               );
             },
-            child: authModel.photoUrl != null
+            child: authState.photoUrl != null
                 ? CircleAvatar(
                     backgroundImage: CachedNetworkImageProvider(
-                      authModel.photoUrl.toString(),
+                      authState.photoUrl.toString(),
                     ),
                     radius: 20,
                   )
@@ -85,7 +85,7 @@ class HomePage extends HookConsumerWidget {
                   ),
                 ),
               ),
-              buildRoomTileList(roomState),
+              buildRoomTileList(roomState, audioState),
             ],
           ),
         ),
@@ -93,66 +93,74 @@ class HomePage extends HookConsumerWidget {
     );
   }
 
-  StreamBuilder<QuerySnapshot> buildRoomTileList(RoomState roomState) {
+  StreamBuilder<QuerySnapshot> buildRoomTileList(
+    RoomState roomState,
+    AudioState audioState,
+  ) {
     final CollectionReference<Map<String, dynamic>> _roomsCollection =
         FirebaseFirestore.instance.collection('rooms');
     final Stream<QuerySnapshot> _roomsStream = _roomsCollection.snapshots();
 
     return StreamBuilder<QuerySnapshot>(
-        stream: _roomsStream,
-        builder: (context, snapshot) {
-          if (snapshot.hasError) {
-            return Center(
-              child: Text('Error: ${snapshot.error}'),
-            );
-          }
-
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(
-              child: CircularProgressIndicator(),
-            );
-          }
-
-          return Column(
-            children: [
-              Wrap(
-                alignment: WrapAlignment.center,
-                spacing: 20.0,
-                runSpacing: 20.0,
-                children: snapshot.data!.docs.map((doc) {
-                  final Map<String, dynamic> data =
-                      doc.data() as Map<String, dynamic>;
-                  final String _roomId = doc.id;
-                  final String _roomName = data['roomName'] as String;
-
-                  return buildRoomTile(
-                    context,
-                    roomState,
-                    _roomsCollection,
-                    _roomId,
-                    _roomName,
-                  );
-                }).toList(),
-              ),
-              const SizedBox(height: 20.0),
-              CupertinoButton(
-                color: Colors.white.withOpacity(0.07),
-                child: Icon(
-                  CupertinoIcons.add,
-                  color: Colors.white.withOpacity(0.5),
-                ),
-                onPressed: () {
-                  _onCreateRoom(context, roomState, _getRandomString(15));
-                },
-              ),
-            ],
+      stream: _roomsStream,
+      builder: (context, snapshot) {
+        if (snapshot.hasError) {
+          return Center(
+            child: Text('Error: ${snapshot.error}'),
           );
-        });
+        }
+
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(
+            child: CircularProgressIndicator(),
+          );
+        }
+
+        return Column(
+          children: [
+            Wrap(
+              alignment: WrapAlignment.center,
+              spacing: 20.0,
+              runSpacing: 20.0,
+              children: snapshot.data!.docs.map((doc) {
+                final Map<String, dynamic> data =
+                    doc.data() as Map<String, dynamic>;
+                final String _roomId = doc.id;
+                final String _roomName = data['roomName'] as String;
+
+                return buildRoomTile(
+                  context,
+                  roomState,
+                  audioState,
+                  _roomsCollection,
+                  _roomId,
+                  _roomName,
+                );
+              }).toList(),
+            ),
+            const SizedBox(height: 20.0),
+            CupertinoButton(
+              color: Colors.white.withOpacity(0.07),
+              child: Icon(
+                CupertinoIcons.add,
+                color: Colors.white.withOpacity(0.5),
+              ),
+              onPressed: () => roomState.create(
+                context,
+                audioState,
+                _getRandomString(15),
+              ),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   Widget buildRoomTile(
     BuildContext context,
     RoomState roomState,
+    AudioState audioState,
     CollectionReference<Map<String, dynamic>> roomsCollection,
     String roomId,
     String roomName,
@@ -161,7 +169,7 @@ class HomePage extends HookConsumerWidget {
         roomsCollection.doc(roomId).collection('participants').snapshots();
 
     return GestureDetector(
-      onTap: () => _onJoin(context, roomState, roomId),
+      onTap: () => roomState.join(context, roomId, audioState),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(20.0),
         child: Stack(
@@ -175,90 +183,110 @@ class HomePage extends HookConsumerWidget {
                 children: [
                   Padding(
                     padding: const EdgeInsets.only(top: 16.0),
-                    // TODO: Make roomName to listen to the roomName field
-                    child: Text(
-                      roomName,
-                      textAlign: TextAlign.left,
-                      style: TextStyle(
-                        color: Colors.white.withOpacity(0.5),
+                    child: SizedBox(
+                      height: 24,
+                      child: Text(
+                        roomName,
+                        textAlign: TextAlign.left,
+                        style: TextStyle(
+                          color: Colors.white.withOpacity(0.5),
+                        ),
                       ),
                     ),
                   ),
-                  StreamBuilder<QuerySnapshot>(
-                    // Cannot use participantStream in RoomState because it is not initialized at this point
-                    stream: _participantsStream,
-                    builder: (context, snapshot) {
-                      if (snapshot.hasError) {
-                        return const Text('Something went wrong');
-                      }
+                  Padding(
+                    padding: const EdgeInsets.only(top: 8.0),
+                    child: SizedBox(
+                      height: 60,
+                      child: StreamBuilder<QuerySnapshot>(
+                        // Cannot use participantStream in RoomState because it is not initialized at this point
+                        stream: _participantsStream,
+                        builder: (context, snapshot) {
+                          if (snapshot.hasError) {
+                            return const Text('Something went wrong');
+                          }
 
-                      if (snapshot.connectionState == ConnectionState.waiting) {
-                        return const Center(
-                          child: CupertinoActivityIndicator(),
-                        );
-                      }
-
-                      return Align(
-                        alignment: Alignment.center,
-                        child: Wrap(
-                          alignment: WrapAlignment.center,
-                          runAlignment: WrapAlignment.center,
-                          direction: Axis.horizontal,
-                          spacing: 10.0,
-                          children: snapshot.data!.docs.map((doc) {
-                            final Map<String, dynamic> data =
-                                doc.data() as Map<String, dynamic>;
-                            final String photoUrl = data['photoUrl'] as String;
-                            final bool isJoined = data['isJoined'] as bool;
-
-                            return ParticipantCircle(
-                              photoUrl: photoUrl,
-                              size: 20,
-                              isJoined: isJoined,
+                          if (snapshot.connectionState ==
+                              ConnectionState.waiting) {
+                            return const Center(
+                              child: CupertinoActivityIndicator(),
                             );
-                          }).toList(),
-                        ),
-                      );
-                    },
+                          }
+
+                          return Align(
+                            alignment: Alignment.center,
+                            child: Wrap(
+                              alignment: WrapAlignment.center,
+                              runAlignment: WrapAlignment.center,
+                              direction: Axis.horizontal,
+                              spacing: 0,
+                              children: snapshot.data!.docs.map((doc) {
+                                final Map<String, dynamic> data =
+                                    doc.data() as Map<String, dynamic>;
+                                final String photoUrl =
+                                    data['photoUrl'] as String;
+                                final bool isJoined = data['isJoined'] as bool;
+
+                                return ParticipantCircle(
+                                  photoUrl: photoUrl,
+                                  size: 20,
+                                  isJoined: isJoined,
+                                );
+                              }).toList(),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
                   ),
+                  SizedBox(
+                    height: 40,
+                    child: Padding(
+                      padding: const EdgeInsets.only(
+                        bottom: 16.0,
+                        right: 16.0,
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.end,
+                        children: [
+                          GestureDetector(
+                            onTap: () => showCupertinoModalPopup<void>(
+                              context: context,
+                              builder: (context) => CupertinoActionSheet(
+                                message: const Text(
+                                  'Delete room?',
+                                ),
+                                actions: [
+                                  CupertinoActionSheetAction(
+                                    isDestructiveAction: true,
+                                    onPressed: () {
+                                      HapticFeedback.lightImpact();
+                                      Navigator.pop(context);
+                                      roomState.delete(roomId);
+                                    },
+                                    child: const Text('Continue'),
+                                  ),
+                                ],
+                                cancelButton: CupertinoActionSheetAction(
+                                  child: const Text('Cancel'),
+                                  onPressed: () => Navigator.pop(context),
+                                ),
+                              ),
+                            ),
+                            child: Icon(
+                              CupertinoIcons.trash,
+                              color: Colors.white.withOpacity(0.5),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
                 ],
               ),
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  void _onCreateRoom(
-    BuildContext context,
-    RoomState roomState,
-    String newRoomId,
-  ) {
-    String roomId = newRoomId;
-    HapticFeedback.heavyImpact();
-
-    roomState.roomsCollection.doc(roomId).set(<String, dynamic>{
-      'roomName': roomId,
-      'createdAt': Timestamp.now(),
-    });
-
-    _onJoin(context, roomState, newRoomId);
-  }
-
-  Future<void> _onJoin(
-    BuildContext context,
-    RoomState roomState,
-    String roomId,
-  ) async {
-    HapticFeedback.lightImpact();
-
-    await roomState.init(roomId);
-    roomState.join();
-    Navigator.push<Widget>(
-      context,
-      CupertinoPageRoute(
-        builder: (context) => const RoomPage(),
       ),
     );
   }
