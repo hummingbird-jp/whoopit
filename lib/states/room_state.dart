@@ -88,11 +88,16 @@ class RoomState extends ChangeNotifier {
   Future<void> init(String roomId) async {
     await [Permission.camera, Permission.microphone].request();
 
-    // Init Agora Rtc Engine
+    await _initAgora();
+    _roomId = roomId;
+    _initCollections();
+    _initDocuments();
+    _initStreams();
+    _initShakeDetector();
+  }
+
+  Future<void> _initAgora() async {
     RtcEngineContext _rtcEngineContext = RtcEngineContext(appId);
-    // TODO: Remove in production
-    _rtcEngine = await RtcEngine.createWithContext(_rtcEngineContext);
-    _rtcEngine.destroy();
     _rtcEngine = await RtcEngine.createWithContext(_rtcEngineContext);
     _rtcEngine.setEventHandler(
       RtcEngineEventHandler(
@@ -114,39 +119,9 @@ class RoomState extends ChangeNotifier {
         },
       ),
     );
+  }
 
-    _roomId = roomId;
-
-    // Init collections
-    _roomsCollection = FirebaseFirestore.instance.collection('rooms');
-    _participantsCollection = FirebaseFirestore.instance
-        .collection('rooms')
-        .doc(_roomId)
-        .collection('participants');
-    _shakersCollection = FirebaseFirestore.instance
-        .collection('rooms')
-        .doc(_roomId)
-        .collection('shakers');
-
-    _me = Participant(
-      agoraUid: FirebaseAuth.instance.currentUser!.uid.hashCode,
-      name: FirebaseAuth.instance.currentUser!.displayName ?? '',
-      firebaseUid: FirebaseAuth.instance.currentUser!.uid,
-      photoUrl: FirebaseAuth.instance.currentUser!.photoURL ?? '',
-      isShaking: false,
-      isMuted: true,
-    );
-
-    // Init documents
-    _myParticipantDocument = _participantsCollection.doc(_me.firebaseUid);
-
-    // Init streams
-    _roomStream = _roomsCollection.doc(_roomId).snapshots();
-    _participantsStream = _participantsCollection.snapshots();
-    _shakersStream =
-        _roomsCollection.doc(_roomId).collection('shakers').snapshots();
-
-    // Init others
+  void _initShakeDetector() {
     _shakeDetector = ShakeDetector.autoStart(
       onPhoneShake: () {
         HapticFeedback.mediumImpact();
@@ -167,6 +142,38 @@ class RoomState extends ChangeNotifier {
         notifyListeners();
       },
       shakeCountResetTime: 2000,
+    );
+  }
+
+  void _initStreams() {
+    _roomStream = _roomsCollection.doc(_roomId).snapshots();
+    _participantsStream = _participantsCollection.snapshots();
+    _shakersStream =
+        _roomsCollection.doc(_roomId).collection('shakers').snapshots();
+  }
+
+  void _initDocuments() {
+    _myParticipantDocument = _participantsCollection.doc(_me.firebaseUid);
+  }
+
+  void _initCollections() {
+    _roomsCollection = FirebaseFirestore.instance.collection('rooms');
+    _participantsCollection = FirebaseFirestore.instance
+        .collection('rooms')
+        .doc(_roomId)
+        .collection('participants');
+    _shakersCollection = FirebaseFirestore.instance
+        .collection('rooms')
+        .doc(_roomId)
+        .collection('shakers');
+
+    _me = Participant(
+      agoraUid: FirebaseAuth.instance.currentUser!.uid.hashCode,
+      name: FirebaseAuth.instance.currentUser!.displayName ?? '',
+      firebaseUid: FirebaseAuth.instance.currentUser!.uid,
+      photoUrl: FirebaseAuth.instance.currentUser!.photoURL ?? '',
+      isShaking: false,
+      isMuted: true,
     );
   }
 
@@ -201,10 +208,7 @@ class RoomState extends ChangeNotifier {
   }
 
   Future<void> join(
-    BuildContext context,
-    String roomId,
-    AudioState audioState,
-  ) async {
+      BuildContext context, String roomId, AudioState audioState) async {
     _isMeJoinInProgress = true;
 
     HapticFeedback.lightImpact();
@@ -222,32 +226,8 @@ class RoomState extends ChangeNotifier {
     await _rtcEngine.enableAudio();
     await _rtcEngine.muteLocalAudioStream(true);
 
-    _myParticipantDocument = _participantsCollection.doc(_me.firebaseUid);
-
-    await _participantsCollection.doc(_me.firebaseUid).set({
-      'firebaseUid': _me.firebaseUid,
-      'agoraUid': _me.agoraUid,
-      'name': _me.name,
-      'photoUrl': _me.photoUrl,
-      'isMuted': _me.isMuted,
-      'shakeCount': 0,
-      'isClapping': false,
-      'isJoined': true
-    });
-
-    // TODO: Add my interests to room's interests
-    final roomInterestsCollection =
-        roomsCollection.doc(roomId).collection('interests');
-    final users = FirebaseFirestore.instance.collection('users');
-    final me = users.doc(FirebaseAuth.instance.currentUser!.uid);
-    final myInterestsCollection = me.collection('interests');
-
-    await myInterestsCollection
-        .get()
-        .then((myInterests) => myInterests.docs.forEach((myInterest) async {
-              log(myInterest.data().toString());
-              roomInterestsCollection.add(myInterest.data());
-            }));
+    await _addMeToParticipants();
+    await _addMyInterestsToRoomsInterests(roomId);
 
     await audioState.playBGM();
 
@@ -261,6 +241,35 @@ class RoomState extends ChangeNotifier {
     );
 
     notifyListeners();
+  }
+
+  Future<void> _addMeToParticipants() async {
+    _myParticipantDocument = _participantsCollection.doc(_me.firebaseUid);
+
+    await _participantsCollection.doc(_me.firebaseUid).set({
+      'firebaseUid': _me.firebaseUid,
+      'agoraUid': _me.agoraUid,
+      'name': _me.name,
+      'photoUrl': _me.photoUrl,
+      'isMuted': _me.isMuted,
+      'shakeCount': 0,
+      'isClapping': false,
+      'isJoined': true
+    });
+  }
+
+  Future<void> _addMyInterestsToRoomsInterests(String roomId) async {
+    final roomInterestsCollection =
+        roomsCollection.doc(roomId).collection('interests');
+    final users = FirebaseFirestore.instance.collection('users');
+    final me = users.doc(FirebaseAuth.instance.currentUser!.uid);
+    final myInterestsCollection = me.collection('interests');
+
+    await myInterestsCollection.get().then((myInterests) {
+      for (var myInterest in myInterests.docs) {
+        roomInterestsCollection.add(myInterest.data());
+      }
+    });
   }
 
   Future<void> leave(BuildContext context, AudioState audioState) async {
