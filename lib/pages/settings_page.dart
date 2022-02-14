@@ -31,7 +31,7 @@ class _SettingsPageState extends State<SettingsPage> {
     return CupertinoPageScaffold(
       navigationBar: const CupertinoNavigationBar(
         middle: Text(
-          'Settings',
+          'Profile',
           style: TextStyle(color: Colors.white),
         ),
       ),

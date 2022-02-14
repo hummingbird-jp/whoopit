@@ -235,7 +235,23 @@ class RoomState extends ChangeNotifier {
       'isJoined': true
     });
 
+    // TODO: Add my interests to room's interests
+    final roomInterestsCollection =
+        roomsCollection.doc(roomId).collection('interests');
+    final users = FirebaseFirestore.instance.collection('users');
+    final me = users.doc(FirebaseAuth.instance.currentUser!.uid);
+    final myInterestsCollection = me.collection('interests');
+
+    await myInterestsCollection
+        .get()
+        .then((myInterests) => myInterests.docs.forEach((myInterest) async {
+              log(myInterest.data().toString());
+              roomInterestsCollection.add(myInterest.data());
+            }));
+
     await audioState.playBGM();
+
+    _isMeJoinInProgress = false;
 
     Navigator.push<RoomPage>(
       context,
@@ -243,8 +259,6 @@ class RoomState extends ChangeNotifier {
         builder: (context) => const RoomPage(),
       ),
     );
-
-    _isMeJoinInProgress = false;
 
     notifyListeners();
   }
