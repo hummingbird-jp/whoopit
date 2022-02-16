@@ -259,15 +259,26 @@ class RoomState extends ChangeNotifier {
   }
 
   Future<void> _addMyInterestsToRoomsInterests(String roomId) async {
-    final roomInterestsCollection =
+    final roomsInterestsCollection =
         roomsCollection.doc(roomId).collection('interests');
     final users = FirebaseFirestore.instance.collection('users');
     final me = users.doc(FirebaseAuth.instance.currentUser!.uid);
     final myInterestsCollection = me.collection('interests');
 
-    await myInterestsCollection.get().then((myInterests) {
+    // Firstly clean up my interests (if any) from the room's interests
+    // to avoid duplicates
+    await roomsInterestsCollection.get().then((roomsInterests) async {
+      for (var roomsInterest in roomsInterests.docs) {
+        if (roomsInterest.data()['addedBy'] ==
+            FirebaseAuth.instance.currentUser?.uid) {
+          await roomsInterestsCollection.doc(roomsInterest.id).delete();
+        }
+      }
+    });
+
+    await myInterestsCollection.get().then((myInterests) async {
       for (var myInterest in myInterests.docs) {
-        roomInterestsCollection.add(myInterest.data());
+        await roomsInterestsCollection.add(myInterest.data());
       }
     });
   }

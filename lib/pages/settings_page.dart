@@ -248,6 +248,7 @@ class _SettingsPageState extends State<SettingsPage> {
         'emoji': emoji == '' ? '🙃' : emoji,
         'content': content,
         'timestamp': Timestamp.now(),
+        'addedBy': FirebaseAuth.instance.currentUser!.uid,
       });
       HapticFeedback.lightImpact();
     } on Exception {
