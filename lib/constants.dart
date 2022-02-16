@@ -1,6 +1,5 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutterfire_ui/auth.dart';
-import 'package:flutterfire_ui/auth/google.dart';
 
 CupertinoThemeData kThemeData = const CupertinoThemeData(
   primaryColor: CupertinoDynamicColor.withBrightness(

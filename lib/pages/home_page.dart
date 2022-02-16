@@ -5,10 +5,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutterfire_ui/auth.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
 import 'package:whoopit/components/participant_circle.dart';
-import 'package:whoopit/constants.dart';
+import 'package:whoopit/pages/settings_page.dart';
 import 'package:whoopit/states/audio_state.dart';
 import 'package:whoopit/states/authentication_state.dart';
 import 'package:whoopit/states/room_state.dart';
@@ -27,47 +26,7 @@ class HomePage extends HookConsumerWidget {
       child: CupertinoPageScaffold(
         navigationBar: CupertinoNavigationBar(
           automaticallyImplyLeading: false,
-          trailing: GestureDetector(
-            onTap: () {
-              showCupertinoModalPopup<void>(
-                context: context,
-                builder: (context) => CupertinoActionSheet(
-                  message: Text(
-                    'You\'re signed in as ${authState.displayName}',
-                  ),
-                  actions: [
-                    CupertinoActionSheetAction(
-                      onPressed: () {
-                        HapticFeedback.lightImpact();
-                        Navigator.pop(context);
-                        Navigator.push<Widget>(
-                          context,
-                          CupertinoPageRoute(
-                            builder: (context) => const ProfileScreen(
-                              providerConfigs: providerConfigs,
-                            ),
-                          ),
-                        );
-                      },
-                      child: const Text('Settings'),
-                    ),
-                  ],
-                  cancelButton: CupertinoActionSheetAction(
-                    child: const Text('Cancel'),
-                    onPressed: () => Navigator.pop(context),
-                  ),
-                ),
-              );
-            },
-            child: authState.photoUrl != null
-                ? CircleAvatar(
-                    backgroundImage: CachedNetworkImageProvider(
-                      authState.photoUrl.toString(),
-                    ),
-                    radius: 20,
-                  )
-                : const Icon(CupertinoIcons.profile_circled),
-          ),
+          trailing: _buildProfileButton(context, authState),
         ),
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0),
@@ -85,7 +44,7 @@ class HomePage extends HookConsumerWidget {
                   ),
                 ),
               ),
-              buildRoomTileList(roomState, audioState),
+              _buildRoomTileList(roomState, audioState),
             ],
           ),
         ),
@@ -93,7 +52,30 @@ class HomePage extends HookConsumerWidget {
     );
   }
 
-  StreamBuilder<QuerySnapshot> buildRoomTileList(
+  GestureDetector _buildProfileButton(
+      BuildContext context, AuthenticationState authState) {
+    return GestureDetector(
+      onTap: () {
+        HapticFeedback.lightImpact();
+        Navigator.push<Widget>(
+          context,
+          CupertinoPageRoute(
+            builder: (context) => const SettingsPage(),
+          ),
+        );
+      },
+      child: authState.photoUrl != null
+          ? CircleAvatar(
+              backgroundImage: CachedNetworkImageProvider(
+                authState.photoUrl.toString(),
+              ),
+              radius: 20,
+            )
+          : const Icon(CupertinoIcons.profile_circled),
+    );
+  }
+
+  StreamBuilder<QuerySnapshot> _buildRoomTileList(
     RoomState roomState,
     AudioState audioState,
   ) {
@@ -128,7 +110,7 @@ class HomePage extends HookConsumerWidget {
                 final String _roomId = doc.id;
                 final String _roomName = data['roomName'] as String;
 
-                return buildRoomTile(
+                return _buildRoomTile(
                   context,
                   roomState,
                   audioState,
@@ -157,7 +139,7 @@ class HomePage extends HookConsumerWidget {
     );
   }
 
-  Widget buildRoomTile(
+  Widget _buildRoomTile(
     BuildContext context,
     RoomState roomState,
     AudioState audioState,
